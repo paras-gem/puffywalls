@@ -3,13 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
-    "next": "16.2.6",
+    "@ducanh2912/next-pwa": "^10.2.6",
+    "lucide-react": "^1.17.0",
+    "next": "latest",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
