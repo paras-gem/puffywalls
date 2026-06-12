@@ -6,7 +6,7 @@ const withPWA = withPWAInit({
   dest: "public",                      // Where the compiled service worker files (sw.js) will be saved
   register: true,                      // Automatically injects the service worker registration script into HTML headers
   skipWaiting: true,                   // Forces the new service worker to take control immediately when an update is found
-  disable: process.env.NODE_ENV === "development", // Disables caching in development so your code changes update instantly
+  disable: false, // PWA explicitly enabled as requested
 });
 
 // 2. Define your base Next.js configuration options

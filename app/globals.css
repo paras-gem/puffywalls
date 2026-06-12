@@ -1,1 +1,101 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* this class is for navbar */
+
+.glassmorphism {
+  /* Layout: Center the navbar contents */
+  display: flex;
+  justify-content: center;
+  align-items: center;  
+
+  /* Vibrant Aurora Glass Background: A colorful but transparent gradient! */
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.3), rgba(139, 92, 246, 0.3), rgba(46, 8, 84, 0.4));
+  border-radius: 50px;
+  height: 50px;
+  /* Premium frosted glass borders and shadows */
+  border: 1px solid rgba(255, 255, 255, 0.2); 
+  border-top: 1px solid rgba(255, 255, 255, 0.4); 
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+/* The actual blur effect that makes it look like frosted glass */
+  backdrop-filter: blur(16px); 
+  -webkit-backdrop-filter: blur(16px);
+  
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+} 
+
+/* this class is for heading*/
+h1 {
+  font-weight: bold;
+  text-align: left;
+  position: relative;
+  right: 400px;
+  top: 20px;
+  background: linear-gradient(to right, #cfa899, #b0c3af);
+
+  /* clips the background in heading shape */ 
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  /* so the heading stays visible and its orignal color is hidden from the background */
+  -webkit-text-fill-color: transparent; 
+}
+
+/* navbar * for button related styling */ 
+
+button {
+  /* Semi-transparent button that looks sleek */
+  background-color: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  padding: 10px 20px; 
+  border-radius: 30px;  
+  border: 1px solid rgba(255, 255, 255, 0.1); 
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover {
+  background-color: #ec4899;
+  color: white;
+  border-color: #ec4899;
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);  
+  transform: translateY(-2px);
+}   
+
+nav {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  position:  relative;
+  top: -40px;
+  
+  
+}
+
+/* Mobile Optimization (Media Queries) */
+@media (max-width: 768px) {
+  .glassmorphism {
+    height: auto; /* Allows the container to grow dynamically */
+    padding: 15px 10px;
+    border-radius: 20px;
+  }
+
+  /* for heading on mobile */   
+  h1 { 
+    right: 0;
+    font-size: 20px;
+    top: 0;
+  }
+
+  nav {
+    flex-wrap: wrap; /* Allows buttons to drop to a new line if screen is too small */
+    gap: 10px;
+    justify-content: center;
+  }
+}
 

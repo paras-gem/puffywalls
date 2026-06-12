@@ -2,7 +2,7 @@
 
 import { useState, useEffect} from 'react';
 
-const InstallButton = () => {
+export default function InstallButton() {
 
   // custom react hooks: always starts with use
 
@@ -55,8 +55,5 @@ const InstallButton = () => {
   };
 
        
-  
  
-};
-
-export default InstallButton;
+} 
