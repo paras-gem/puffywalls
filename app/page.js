@@ -1,12 +1,13 @@
-// this file is for home page components calling
 
-import  InstallButton from '../components/InstallButton.js';
-import Navbar from '../components/navbar.js';    
+
 export default function Page() {
   return (
     <main>
-  <InstallButton />
-  <Navbar />
-   </main>
+      {/* 
+        InstallButton, Navbar, DarkModeToggle, and SearchBar 
+        are now handled by the global Header component in layout.js 
+      */}
+  
+    </main>
   );
 }

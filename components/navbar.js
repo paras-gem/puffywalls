@@ -8,9 +8,7 @@ export default function Navbar() {
     return (
         <div className="glassmorphism">
             <div className="button">
-                <h1>
-                PuffyWalls
-                </h1>
+        <h1>PuffyWalls</h1>
             <nav>
                 <span><button onClick={()=> router.push("/")} >Home</button></span>
               <span><button onClick={()=> router.push("/explore")} >Explore</button></span>     

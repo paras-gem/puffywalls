@@ -1,0 +1,19 @@
+.darkbutton {
+    cursor: pointer;
+    border: none;
+    background: transparent !important;
+    color: yellow;
+    position: relative;
+    top: -40px;
+    left: 1430px;
+    padding: 0; /* Reset the global button padding */
+    box-shadow: none;
+}
+
+/* Override the global button hover effect */
+.darkbutton:hover {
+    background: transparent !important;
+    transform: none;
+    box-shadow: none;
+    color: #ec4899; /* Change icon color on hover instead */
+}
