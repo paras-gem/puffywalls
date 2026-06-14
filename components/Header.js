@@ -4,7 +4,6 @@
 
 import { usePathname } from "next/navigation";
 import Navbar from "./navbar";
-import DarkModeToggle from "./DarkModeToggle";
 import InstallButton from "./InstallButton";
 import SearchBar from "./SearchBar";
 
@@ -16,11 +15,8 @@ export default function Header() {
 
   return (
     <header className="site-header" style={{ position: 'relative', zIndex: 10 }}>
-      {/* We can organize these components as needed */}
       <InstallButton />
       <Navbar />
-      <DarkModeToggle />
-      
       {/* Conditionally render SearchBar ONLY if we are NOT on the home page */}
       {!isHomePage && <SearchBar />}
     </header>

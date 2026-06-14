@@ -3,11 +3,13 @@
     border: none;
     background: transparent !important;
     color: yellow;
-    position: relative;
-    top: -40px;
-    left: 1430px;
-    padding: 0; /* Reset the global button padding */
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
     box-shadow: none;
+    transition: color 0.3s ease;
 }
 
 /* Override the global button hover effect */
@@ -15,5 +17,5 @@
     background: transparent !important;
     transform: none;
     box-shadow: none;
-    color: #ec4899; /* Change icon color on hover instead */
+    color: #ec4899;
 }
