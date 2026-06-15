@@ -29,7 +29,7 @@ export default function LoginPage() {
     return (
         <div className="page-container">
             <div className="fullscreen-bg animate-bg"></div>
-            <div className="login-container">
+            <div className="login-container animate">
 
                 <div className="welcome-section">
                     <h1>Welcome to PuffyWalls</h1>
@@ -65,7 +65,7 @@ export default function LoginPage() {
                 </p>
 
                 <p className="forgot-text">
-                    <a href="/forgot-password">Forgot Password?</a>   
+                    Forgot Password? <a href="/forgot-password">Reset Password</a>   
                 </p>    
 
             </div>
