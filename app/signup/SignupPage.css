@@ -1,0 +1,226 @@
+/* =====================
+   PAGE LAYOUT
+   ===================== */
+
+/* Centers the login card both vertically and horizontally */
+.page-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 88px);
+}
+
+.fullscreen-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/login-bg.png');
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+}
+
+.animate-bg {
+    /* A 30s linear pan feels like a drone camera slowly moving sideways */
+    animation: panBackground 30s infinite alternate ease-in-out;
+}
+
+@keyframes panBackground {
+    0% {
+        /* Scale it up slightly so we have edges to reveal as we move */
+        transform: scale(1.2) translateX(-3%);
+    }
+    100% {
+        transform: scale(1.2) translateX(3%);
+    }
+}
+
+.login-container.animate {
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(207, 168, 153, 0.3);
+    box-shadow: 0 8px 32px rgba(207, 168, 153, 0.1);    
+    animation: loginCardSlideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    border-radius: 24px;  /* Same as the normal login-container */
+    padding: 24px 20px;   /* Match the original card padding */
+    width: 350px;           
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes loginCardSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* =====================
+   GLASS CARD
+   ===================== */
+
+/* The frosted glass card that contains all login elements
+   height is auto so it grows with content, not fixed pixels */
+.login-container {
+    width: 380px;
+    padding: 40px 36px;
+    border-radius: 24px;
+    background: rgba(207, 168, 153, 0.15); /* Warm peach tint */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(207, 168, 153, 0.3);
+    box-shadow: 0 8px 32px rgba(207, 168, 153, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+/* =====================
+   WELCOME TEXT
+   ===================== */
+
+.welcome-section {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.welcome-section h1 {
+    font-size: 22px;
+    color: #cfa899;
+    margin: 0 0 6px 0;
+    font-weight: 700;
+}
+
+.welcome-section p {
+    color: #cfa899; 
+    font-size: 13px;
+    margin: 0;
+}
+
+/* =====================
+   INPUT GROUPS
+   ===================== */
+
+/* Wrapper that holds the icon + input + optional eye button in one row
+   Looks like a single input field with icons inside */
+.input-group {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: border-color 0.2s ease;
+}
+
+.input-group:focus-within {
+    /* Highlights the whole row when the user clicks inside */
+    border-color: #ec4899;
+}
+
+/* The icon sitting on the left of the input */
+.input-icon {
+    flex-shrink: 0;
+    opacity: 0.6;
+}
+
+/* The actual text/password input — stretches to fill available space */
+.input-field {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #cfa899; 
+    font-size: 14px;
+}
+
+.input-field::placeholder {
+    color: #cfa899;
+}
+
+/* =====================
+   EYE BUTTON (inside password field)
+   ===================== */
+
+/* Sits on the right edge of the input-group — no border/bg so it blends in */
+.eye-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    transition: color 0.2s ease;
+    box-shadow: none;
+    transform: none;
+}
+
+.eye-btn:hover {
+    /* Override global button:hover — only change icon color, no bg shift */
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+    color: #ec4899;
+}
+
+/* =====================
+   BUTTONS
+   ===================== */
+
+/* Primary pink login button */
+.login-btn {
+    margin-top: 8px;
+    padding: 11px;
+    border-radius: 50px;
+    border: none;
+    color: white;
+    background-color: #ec4899;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-btn:hover {
+    background-color: #db2777;
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+    transform: translateY(-1px);
+}
+
+/* =====================
+   FORGOT PASSWORD LINK
+   ===================== */
+
+.forgot-text {
+    margin-top: 10px;
+    text-align: right;
+    padding-right: 55px;      /* aligns with the right edge of input fields */ 
+    width: 100%;    
+}
+
+.forgot-text a {
+    color: #ec4899;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.forgot-text a:hover {
+    text-decoration: underline;
+}   

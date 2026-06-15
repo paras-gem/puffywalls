@@ -1,19 +1,18 @@
 'use client'
 
-import './LoginPage.css';
+import './SignupPage.css'   
 import { useRef, useEffect } from 'react';
 import { User, Lock, Eye, LogIn } from 'lucide-react';
 
-export default function LoginPage() {
+export default function SignupPage() {
     const passwordRef = useRef(null);
     const eyeBtnRef = useRef(null);
 
     useEffect(() => {
-        const btn = eyeBtnRef.current;   // the eye icon button element
-        const input = passwordRef.current; // the password input element
+        const btn = eyeBtnRef.current;  
+        const input = passwordRef.current; 
 
-        // toggle() — called every time the user clicks the eye icon
-        // The ternary flips between the two states on each click
+        
         const toggle = () => {
             input.type = input.type === 'password' ? 'text' : 'password';
         };
@@ -39,13 +38,24 @@ export default function LoginPage() {
                 {/* Username field */}
                 <div className="input-group">
                     <User size={18} className="input-icon" />
-                    <input type="text" placeholder="Username" className="input-field" />
+                    <input type="text" placeholder="First name" className="input-field" />
                 </div>
 
+                <div className="input-group">
+                    <User size={18} className="input-icon" />
+                    <input type="text" placeholder="Last name" className="input-field" />
+                </div>
+
+                <div className="input-group">
+                    <User size={18} className="input-icon" />
+                    <input type="email" placeholder="Email" className="input-field" />
+                </div>
+
+                
                 {/* Password field — Eye button sits inside to toggle visibility */}
                 <div className="input-group">
                     <Lock size={18} className="input-icon" />
-                    <input ref={passwordRef} type="password" placeholder="Password" className="input-field" />
+                    <input ref={passwordRef} type="password" placeholder="  Password" className="input-field" />
                     <button ref={eyeBtnRef} className="eye-btn" type="button" title="Toggle password">
                         <Eye size={18} />
                     </button>
@@ -61,7 +71,7 @@ export default function LoginPage() {
                 </button>
 
                 <p className="signup-text">
-                    Not a member? <a href="/signup">Sign Up</a>     
+             Already a member? <a href="/login">Login</a>   
                 </p>
 
                 <p className="forgot-text">
