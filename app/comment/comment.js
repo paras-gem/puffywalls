@@ -30,4 +30,16 @@
  *    - Code Cleanup: Condensed login/page.js, removed unused social icons, simplified password toggle.
  *    - Theming: Updated LoginPage.css to a "Warm Peach" (#cfa899) frosted glass effect. Prevented scrolling with overflow: hidden.
  *    - Cinematic Background: Generated a mountain/river image, set it as a full-screen fixed background behind the navbar, and added a 30s slow panning animation to simulate a drone camera.
+ * 
+ * 6. Authentication & Firebase Setup
+ *    - Core Setup: Configured `lib/firebase.js` to initialize the Firebase App and Authentication service.
+ *    - Global State: Created `lib/AuthContext.js` to wrap the app and provide the user's auth state globally.
+ *    - Login Flows: Implemented Email/Password login and Google popup sign-in on `app/login/page.js`.
+ *    - Password Recovery: Built a "Forgot Password" page to send reset emails via Firebase.
+ *    - Reset Flow: Created a dedicated "Reset Password" page (`app/reset-password/page.js`) that safely parses the `oobCode` from the email link and updates the password securely.
+ * 
+ * 7. Premium Notifications (Sonner Toasts)
+ *    - Setup: Installed the `sonner` library to provide premium, smooth toast notifications.
+ *    - Global Integration: Added the `<Toaster richColors position="top-center" />` component to `app/layout.js` so it's accessible anywhere.
+ *    - UX Polish: Replaced basic error texts and console logs with elegant `toast.success()` and `toast.error()` popups to greet the user upon successful login or password reset.
  */

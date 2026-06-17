@@ -4,7 +4,6 @@
 
 import { usePathname } from "next/navigation";
 import Navbar from "./navbar";
-import InstallButton from "./InstallButton";
 import SearchBar from "./SearchBar";
 
 export default function Header() {
@@ -15,7 +14,7 @@ export default function Header() {
 
   return (
     <header className="site-header" style={{ position: 'relative', zIndex: 10 }}>
-      <InstallButton />
+      
       <Navbar />
       {/* Conditionally render SearchBar ONLY if we are NOT on the home page */}
       {!isHomePage && <SearchBar />}

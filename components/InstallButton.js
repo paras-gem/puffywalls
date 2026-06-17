@@ -54,6 +54,11 @@ export default function InstallButton() {
     setIsInstallable(false);  // and the button will be hidden. 
   };
 
-       
- 
-} 
+  if (!isInstallable) return null;
+
+  return (
+    <button className="login-button" onClick={handleInstallClick}>
+      Install
+    </button>
+  );
+}

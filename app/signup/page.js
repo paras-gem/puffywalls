@@ -1,29 +1,12 @@
 'use client'
 
 import './SignupPage.css'   
-import { useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { User, Lock, Eye, LogIn } from 'lucide-react';
 
 export default function SignupPage() {
-    const passwordRef = useRef(null);
-    const eyeBtnRef = useRef(null);
-
-    useEffect(() => {
-        const btn = eyeBtnRef.current;  
-        const input = passwordRef.current; 
-
-        
-        const toggle = () => {
-            input.type = input.type === 'password' ? 'text' : 'password';
-        };
-
-        btn.addEventListener('click', toggle);
-
-        // Cleanup: when the component unmounts (e.g. user navigates away),
-        // we remove the listener to prevent memory leaks
-        return () => btn.removeEventListener('click', toggle);
-
-    }, []); 
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     return (
         <div className="page-container">
@@ -55,20 +38,24 @@ export default function SignupPage() {
                 {/* Password field — Eye button sits inside to toggle visibility */}
                 <div className="input-group">
                     <Lock size={18} className="input-icon" />
-                    <input ref={passwordRef} type="password" placeholder="  Password" className="input-field" />
-                    <button ref={eyeBtnRef} className="eye-btn" type="button" title="Toggle password">
+                    <input type={showPassword ? "text" : "password"} placeholder="  Password" className="input-field" />
+                    <button className="eye-btn" type="button" onClick={() => setShowPassword(!showPassword)} title="Toggle password">
+                        <Eye size={18} />
+                    </button>
+                </div>
+
+                <div className="input-group">
+                <Lock size={18} className="input-icon" />
+                    <input type={showConfirmPassword ? "text" : "password"} placeholder="  Confirm Password" className="input-field" />
+                    <button className="eye-btn" type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} title="Toggle password">
                         <Eye size={18} />
                     </button>
                 </div>
 
                 <button className="login-btn">
-                    <LogIn size={18} /> Login
+                    <LogIn size={18} /> Signup
                 </button>
 
-                {/* Google login — lucide-react has no Google icon so we use a styled G */}
-                <button className="google-btn">
-                    <span className="google-g">G</span> Continue with Google
-                </button>
 
                 <p className="signup-text">
              Already a member? <a href="/login">Login</a>   

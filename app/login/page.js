@@ -1,30 +1,49 @@
 'use client'
 
+import { auth } from '@/lib/firebase';    
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'; 
 import './LoginPage.css';
-import { useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { User, Lock, Eye, LogIn } from 'lucide-react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-    const passwordRef = useRef(null);
-    const eyeBtnRef = useRef(null);
+    const [showPassword, setShowPassword] = useState(false);
 
-    useEffect(() => {
-        const btn = eyeBtnRef.current;   // the eye icon button element
-        const input = passwordRef.current; // the password input element
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const router = useRouter();
 
-        // toggle() — called every time the user clicks the eye icon
-        // The ternary flips between the two states on each click
-        const toggle = () => {
-            input.type = input.type === 'password' ? 'text' : 'password';
-        };
+    const handleEmailLogin = async(event) => {
+        event.preventDefault();
+        setError(""); // clear previous errors
 
-        btn.addEventListener('click', toggle);
+        try {
+            await signInWithEmailAndPassword(auth, email, password); 
+            toast.success("Welcome back! You've successfully logged in.");
+            router.push('/');
+        } catch (err) {
+            console.log("login failed:", err.message);
+            setError("Invalid email or password");
+        }
+    }
 
-        // Cleanup: when the component unmounts (e.g. user navigates away),
-        // we remove the listener to prevent memory leaks
-        return () => btn.removeEventListener('click', toggle);
-
-    }, []); 
+    const handleGoogleLogin = async (event) => {
+        event.preventDefault();
+        const provider = new GoogleAuthProvider();
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+            toast.success(`Welcome back, ${user.displayName || 'User'}!`);
+            router.push('/');
+        } catch (error) {
+            console.error("Google Login Failed: ", error.message);
+            toast.error("Google Login Failed: " + error.message);
+        }
+    };
 
     return (
         <div className="page-container">
@@ -36,27 +55,41 @@ export default function LoginPage() {
                     <p>Login to download and set wallpapers</p>
                 </div>
 
-                {/* Username field */}
+                {/* Optional: Show error message if login fails */}
+                {error && <p style={{ color: '#ec4899', fontSize: '13px', margin: '0' }}>{error}</p>}                {/* Email field */}
                 <div className="input-group">
                     <User size={18} className="input-icon" />
-                    <input type="text" placeholder="Username" className="input-field" />
+                    <input 
+                        type="email" 
+                        placeholder="Email" 
+                        className="input-field" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
                 </div>
 
-                {/* Password field — Eye button sits inside to toggle visibility */}
+                {/* Password field */}
                 <div className="input-group">
                     <Lock size={18} className="input-icon" />
-                    <input ref={passwordRef} type="password" placeholder="Password" className="input-field" />
-                    <button ref={eyeBtnRef} className="eye-btn" type="button" title="Toggle password">
+                    <input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="Password" 
+                        className="input-field" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button className="eye-btn" type="button" onClick={() => setShowPassword(!showPassword)} title="Toggle password">
                         <Eye size={18} />
                     </button>
                 </div>
 
-                <button className="login-btn">
+                {/* Login Button */}
+                <button className="login-btn" onClick={handleEmailLogin}>
                     <LogIn size={18} /> Login
                 </button>
 
                 {/* Google login — lucide-react has no Google icon so we use a styled G */}
-                <button className="google-btn">
+                <button className="google-btn" onClick={handleGoogleLogin}>
                     <span className="google-g">G</span> Continue with Google
                 </button>
 
