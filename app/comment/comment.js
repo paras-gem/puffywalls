@@ -42,4 +42,9 @@
  *    - Setup: Installed the `sonner` library to provide premium, smooth toast notifications.
  *    - Global Integration: Added the `<Toaster richColors position="top-center" />` component to `app/layout.js` so it's accessible anywhere.
  *    - UX Polish: Replaced basic error texts and console logs with elegant `toast.success()` and `toast.error()` popups to greet the user upon successful login or password reset.
+ * 
+ * 8. Backend API Directories Setup
+ *    - API Routes Created: Initialized `app/api/wallpapers` and `app/api/favorites` directories.
+ *    - Why: These folders will house our Next.js backend API routes (e.g., `route.js`) to securely communicate with the Pexels API and MongoDB, separating backend logic from frontend pages.
  */
+
