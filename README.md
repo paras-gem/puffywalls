@@ -7,7 +7,6 @@ PuffyWalls is a minimalist, fast, and responsive web application designed for br
 ## ✨ Features
 
 - **🌸 Pastel & Cute Aesthetic:** A soft, modern user interface utilizing smooth glassmorphic elements and micro-interactions.
-- **🧱 Masonry Layout Grid:** A dynamic, fluid, Pinterest-style image presentation that scales cleanly across mobile, tablet, and desktop viewports.
 - **🔄 Infinite Scroll:** Seamlessly loads subsequent rows of images automatically as the user scrolls, utilizing React Query and the Intersection Observer API.
 - **🔍 Live Filtered Search:** Instantly filters wallpapers by text queries, tags, and categories with real-time debounced updates.
 - **🎨 Color Palette Explorer:** Extract and view the primary Hex color palettes directly from the wallpaper metadata.
