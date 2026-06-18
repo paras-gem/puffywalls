@@ -1,0 +1,247 @@
+/* app/explore/ExplorePage.css */
+
+.explore-page-container {
+    min-height: 100vh;
+    /* Removed hardcoded #0f1115 so light/dark mode works! */
+    background-color: transparent; 
+    font-family: 'Inter', sans-serif;
+}
+
+/* =========================================
+   HERO SECTION WITH BACKGROUND IMAGE
+   ========================================= */
+.explore-hero {
+    position: relative;
+    width: 100%;
+    /* We add padding top to account for the navbar and negative margin */
+    padding: 140px 20px 60px; 
+    text-align: center;
+    color: #ffffff; /* Always keep hero text white for contrast */
+    overflow: hidden; /* Contains the animated background */
+    margin-top: -88px; /* Pulls the hero up behind the navbar */
+    z-index: 1; /* Creates a stacking context to trap pseudo-elements */
+}
+
+/* Pseudo element for the animated background image */
+.explore-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    z-index: -1; /* Goes behind overlay and content */
+    animation: heroZoom 8s infinite alternate ease-in-out;
+    will-change: transform;
+}
+
+@keyframes heroZoom {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.2); }
+}
+
+/* Adds a dark gradient over the image so text is readable */
+.explore-hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(15, 17, 21, 0.4) 0%, rgba(15, 17, 21, 0.9) 100%);
+    z-index: 0;
+}
+
+/* Ensures content sits above the overlay */
+.explore-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.explore-hero-content h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.explore-hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: #cbd5e1;
+}
+
+.hero-search-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+    animation: slideDown 0.8s ease-out forwards;
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+@keyframes slideDown {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================
+   CATEGORIES ROW
+   ========================================= */
+.categories-container {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 20px;
+    justify-content: center;
+    /* Hides scrollbar but keeps it scrollable on small screens */
+    scrollbar-width: none; 
+}
+.categories-container::-webkit-scrollbar {
+    display: none;
+}
+
+.category-pill {
+    padding: 8px 20px;
+    border-radius: 30px;
+    border: 1px solid rgba(136, 146, 176, 0.3);
+    background-color: transparent;
+    color: inherit; /* Inherits text color so light/dark mode works */
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.category-pill:hover {
+    border-color: #a6c1ee;
+}
+
+.category-pill.active {
+    background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
+    color: #0f1115 !important;
+    border: none;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(166, 193, 238, 0.4);
+}
+
+/* =========================================
+   EXPLORE CONTENT (Grid)
+   ========================================= */
+.explore-content {
+    padding: 0 5% 60px;
+}
+
+.query-title {
+    margin-bottom: 30px;
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.query-title span {
+    background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Loading Spinner */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 30vh;
+    color: #8892b0;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(166, 193, 238, 0.2);
+    border-top-color: #a6c1ee;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Wallpaper Grid Layout */
+.wallpaper-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Individual Wallpaper Card */
+.wallpaper-card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    /* Using a subtle semi-transparent background so it adapts to light/dark mode instead of hardcoded black */
+    background-color: rgba(136, 146, 176, 0.1); 
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    aspect-ratio: 9 / 16;
+    animation: fadeInScale 0.6s ease-out forwards;
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+@keyframes fadeInScale {
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.wallpaper-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+.wallpaper-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.wallpaper-card:hover .wallpaper-image {
+    transform: scale(1.05);
+}
+
+.wallpaper-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+.wallpaper-card:hover .wallpaper-overlay {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.photographer-name {
+    margin: 0;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}

@@ -1,0 +1,90 @@
+/* components/SearchBar.css */
+
+.search-form {
+    display: flex;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 30px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8892b0;
+    animation: pulse-white 2s infinite ease-in-out;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 20px 14px 45px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #a6c1ee;
+}
+
+/* =========================================
+   SEARCH BUTTON STYLING
+   ========================================= */
+.search-button {
+    /* Pulls button slightly over the input for a connected, sleek pill look */
+    margin-left: -45px; 
+    
+    /* Adds horizontal padding so the text breathes */
+    padding: 0 24px;
+    
+    /* Matches the curve of the input field */
+    border-radius: 30px;
+    
+    /* Premium accent color that matches our gradient theme */
+    background-color: #a6c1ee;
+    
+    /* Dark contrast text so it's readable on the light blue button */
+    color: #0f1115;
+    
+    /* Removes default browser borders */
+    border: none;
+    
+    /* Makes the text punchy and readable */
+    font-weight: 700;
+    
+    /* Changes cursor to a pointing hand to indicate it's clickable */
+    cursor: pointer;
+    
+    /* Smoothly transitions colors if we hover over it */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Adds a small hover interaction so it feels alive */
+.search-button:hover {
+    background-color: #fbc2eb; /* Changes to the pinkish gradient color */
+    transform: scale(1.05); /* Slight pop out effect */
+}
+
+/* Adds a pressing down animation when clicked */
+.search-button:active {
+    transform: scale(0.95);
+}
+
+@keyframes pulse-white {
+    0%, 100% {
+        opacity: 0.5; /* Starts and ends at 50% transparency */
+    }
+    50% {
+        opacity: 1;   /* Fades to fully opaque in the middle of the animation */
+    }
+}   

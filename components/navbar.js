@@ -21,7 +21,6 @@ export default function Navbar() {
                 <button onClick={() => router.push("/")}>Home</button>
                 <button onClick={() => router.push("/explore")}>Explore</button>
                 <button onClick={() => router.push("/trending")}>Trending</button>
-                <button onClick={() => router.push("/collections")}>Collections</button>
                 <button onClick={() => router.push("/about")}>About</button>
             
 
