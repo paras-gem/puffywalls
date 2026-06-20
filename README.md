@@ -18,9 +18,11 @@ PuffyWalls is a minimalist, fast, and responsive full-stack web application desi
 Frontend & Styling
 Framework: Next.js (App Router)
 
-Styling & Presentation: Tailwind CSS + CSS Grid Masonry layouts
+Styling & Presentation: CSS Grid Layout
 
 Icons & Micro-interactions: Lucide React + CSS Transitions
+
+Sonner: Next.js library for toast notifications
 
 Backend & Authentication
 Database Wrapper: Mongoose (MongoDB Object Modeling)
