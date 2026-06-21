@@ -1,0 +1,319 @@
+/* =========================================================================
+   SETTINGS PAGE STYLES (PREMIUM DARK MODE WITH GLASSMORPHISM)
+   ========================================================================= */
+
+/* 
+  1. PAGE BACKGROUND & LAYOUT 
+  The main wrapper for the settings page. It uses a dark gradient background 
+  with flexbox to center the content perfectly.
+*/
+.settings-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Aligns content near the top */
+  padding: 4rem 2rem;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Dark Mode (Default) */
+html.dark .settings-page, .settings-page {
+  background: linear-gradient(135deg, #0f1115 0%, #1e1b4b 100%);
+  color: #e2e8f0;
+}
+
+/* Light Mode */
+html.light .settings-page {
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+  color: #1e293b;
+}
+
+/* 
+  2. MAIN CONTAINER 
+  Restricts the maximum width of the settings content so it doesn't 
+  stretch too far on large screens. 
+*/
+.settings-container {
+  width: 100%;
+  max-width: 800px; /* Keeps it readable */
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* Adds spacing between header and content */
+}
+
+/* 
+  3. HEADER STYLES 
+  Styles for the "Account Settings" title and subtitle. 
+*/
+.settings-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 1.5rem;
+}
+html.light .settings-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.header-title h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0;
+  /* Premium gradient text effect */
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+html.light .header-title h1 {
+  background: linear-gradient(135deg, #1e293b 0%, #4f46e5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.icon-large {
+  width: 32px;
+  height: 32px;
+  color: #818cf8; /* Soft purple/indigo */
+}
+
+.header-subtitle {
+  color: #94a3b8;
+  font-size: 1rem;
+  margin: 0;
+}
+html.light .header-subtitle {
+  color: #475569;
+}
+
+/* 
+  4. GLASSMORPHISM CARDS 
+  This creates the "frosted glass" effect. It's partially transparent 
+  with a background blur, giving a very modern, premium feel. 
+*/
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03); /* Extremely subtle white */
+  backdrop-filter: blur(16px); /* The blur effect */
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08); /* Subtle border for definition */
+  border-radius: 16px; /* Smooth rounded corners */
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); /* Soft shadow for depth */
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+html.light .glass-panel {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+/* Slight hover effect to make cards feel interactive */
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+html.light .glass-panel:hover {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* 
+  5. CARD HEADERS 
+  Inside the glass panels (e.g., "Profile Information", "Security") 
+*/
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.card-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: #ffffff;
+}
+html.light .card-header h2 {
+  color: #0f172a;
+}
+
+.card-header .icon {
+  color: #818cf8;
+  width: 24px;
+  height: 24px;
+}
+
+/* 
+  6. FORMS & INPUTS 
+  Styling for labels, input fields, and the wrapper that holds icons inside inputs.
+*/
+.form-group {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #cbd5e1;
+}
+html.light .form-group label {
+  color: #475569;
+}
+
+/* Wrapper to position icons absolutely inside the input */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  width: 18px;
+  height: 18px;
+  color: #64748b; /* Gray icon color */
+  pointer-events: none; /* Prevents icon from blocking clicks */
+}
+
+/* The actual input field */
+.input-wrapper input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2); /* Dark inner background */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem 1rem 0.75rem 2.75rem; /* Left padding makes room for the icon */
+  color: #ffffff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+html.light .input-wrapper input {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+/* Glowing effect when the user clicks/focuses on the input */
+.input-wrapper input:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+}
+html.light .input-wrapper input:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.input-wrapper input::placeholder {
+  color: #475569;
+}
+html.light .input-wrapper input::placeholder {
+  color: #94a3b8;
+}
+
+/* 
+  7. BUTTONS 
+  Styles for Save and Cancel buttons at the bottom. 
+*/
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.settings-page button {
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Cancel Button (Subtle, transparent) */
+.btn-cancel {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+}
+html.light .btn-cancel {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  color: #475569;
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+html.light .btn-cancel:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #0f172a;
+}
+
+/* Save Button (Primary action, vibrant color) */
+.btn-save {
+  background: #6366f1; /* Indigo */
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-save:hover:not(:disabled) {
+  background: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+
+.btn-save:disabled {
+  background: #475569;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.icon-small {
+  width: 18px;
+  height: 18px;
+}
+
+/* 
+  8. RESPONSIVE DESIGN 
+  Adjustments for mobile devices. 
+*/
+@media (max-width: 600px) {
+  .settings-page {
+    padding: 2rem 1rem; /* Less padding on small screens */
+  }
+  
+  .glass-panel {
+    padding: 1.5rem;
+  }
+  
+  .settings-actions {
+    flex-direction: column-reverse; /* Stack buttons vertically */
+  }
+  
+  .settings-page button {
+    width: 100%; /* Full width buttons on mobile */
+    justify-content: center;
+  }
+}
+

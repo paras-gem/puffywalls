@@ -64,6 +64,12 @@
     animation: dropDownFade 0.2s ease-out forwards;
 }
 
+html.light .user-dropdown {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
 @keyframes dropDownFade {
     0% { opacity: 0; transform: translateY(-10px); }
     100% { opacity: 1; transform: translateY(0); }
@@ -79,11 +85,17 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+html.light .user-email {
+    color: #475569;
+}
 
 .user-dropdown hr {
     border: none;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     margin: 4px 0;
+}
+html.light .user-dropdown hr {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .dropdown-item {
@@ -101,14 +113,24 @@
     transition: background 0.2s ease;
     text-align: left;
 }
+html.light .dropdown-item {
+    color: #1e293b;
+}
 
 .dropdown-item:hover {
     background: rgba(255, 255, 255, 0.1);
     transform: none; /* override the global button hover */
     box-shadow: none;
 }
+html.light .dropdown-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
 
 .logout-item:hover {
     background: rgba(239, 68, 68, 0.2); /* Slight red tint for logout */
     color: #fca5a5;
+}
+html.light .logout-item:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
 }

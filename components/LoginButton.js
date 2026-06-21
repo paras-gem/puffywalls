@@ -1,6 +1,6 @@
 'use client'
 
-import { User, LogOut, PlusCircle } from 'lucide-react';
+import { User, LogOut, PlusCircle, Settings as SettingsIcon} from 'lucide-react';
 import './LoginButton.css';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';    
@@ -39,6 +39,12 @@ export default function LoginButton() {
         router.push("/login");
     };
 
+    // 🟢 FIXED: Removed unnecessary 'async' keyword and added state reset 
+    const handleSettings = () => {
+        setIsDropdownOpen(false); // 🟢 FIXED: Closes the dropdown menu on click
+        router.push("/settings");
+    };
+
     // if the user is logged in, show their initials in the place of login text 
     if(user) {
         const initial = user.email ? user.email.charAt(0).toUpperCase() : "U";  
@@ -60,6 +66,10 @@ export default function LoginButton() {
                         </button>
                         <button onClick={handleLogout} className="dropdown-item logout-item">
                             <LogOut size={16} /> Logout
+                        </button>
+                        <button onClick={handleSettings} className="dropdown-item settings-item">
+                            {/* 🟢 FIXED: Changed <Settings /> to <SettingsIcon /> to match your import mapping */}
+                            <SettingsIcon size={16} /> Settings
                         </button>
                     </div>
                 )}
