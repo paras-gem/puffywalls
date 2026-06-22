@@ -1,0 +1,86 @@
+/* ==========================================================================
+   Trending Page Styles
+   ========================================================================== */
+
+/* Main container ensuring the page takes up full height */
+.trending-page {
+    min-height: 100vh;
+    padding-bottom: 3rem;
+}
+
+/* 
+   Trending Header 
+   Features a warm, fiery gradient background to indicate "hot" or "trending"
+*/
+.trending-header {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, rgba(255, 118, 117, 0.15), rgba(253, 121, 168, 0.15));
+    margin-bottom: 3rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Flex container to align the flame icon and the heading */
+.header-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Trending Title with a gradient text effect */
+.header-title h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 0;
+    background: linear-gradient(to right, #ff7675, #fd79a8);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+/* 
+   Flame Icon
+   Adds a pulsing animation to make the header feel active/live
+*/
+.fire-icon {
+    color: #ff7675;
+    animation: pulseFire 2s infinite ease-in-out;
+}
+
+/* Keyframes for the pulsing flame effect */
+@keyframes pulseFire {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+
+/* Subtitle styling */
+.header-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-color, #333);
+    opacity: 0.8;
+}
+
+/* Like count display on trending cards */
+.likes-count {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #ff7675;
+    font-weight: 500;
+}
+
+/* Small heart icon next to the like count */
+.heart-icon-small {
+    fill: #ff7675;
+}
+
+/* ==========================================================================
+   Dark Mode Adjustments
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+    .trending-header {
+        background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(255, 118, 117, 0.05));
+    }
+}

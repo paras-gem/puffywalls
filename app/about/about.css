@@ -1,0 +1,159 @@
+/* ==========================================================================
+   About Page Styles
+   ========================================================================== */
+
+/* Main container centering the about content */
+.about-page {
+    min-height: 100vh;
+    padding: 4rem 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+/* Constrain width for better readability */
+.about-container {
+    max-width: 800px;
+    width: 100%;
+}
+
+/* Hero section for the about page */
+.about-hero {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+/* 
+   Hero Icon
+   Adds a slow floating animation to match the dreamy vibe
+*/
+.hero-icon {
+    color: var(--primary-color, #a06bff);
+    margin-bottom: 1rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+/* About Title with gradient text */
+.about-hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, #a06bff, #ff6b6b);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+/* Subtitle text */
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-color, #333);
+    opacity: 0.8;
+    line-height: 1.6;
+}
+
+/* Container for the information cards */
+.about-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* 
+   About Card
+   Uses glassmorphism (semi-transparent white with backdrop blur)
+*/
+.about-card {
+    padding: 2rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+/* Header inside the card, separating title from body */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(160, 107, 255, 0.2);
+    padding-bottom: 1rem;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--primary-color, #a06bff);
+}
+
+.icon {
+    color: var(--primary-color, #a06bff);
+}
+
+/* Paragraph spacing */
+.card-body p {
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    color: var(--text-color, #333);
+}
+
+/* List styling for tech stack */
+.tech-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.tech-list li {
+    padding: 0.8rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    color: var(--text-color, #333);
+}
+
+.tech-list li:last-child {
+    border-bottom: none;
+}
+
+/* Database Structure section styling */
+.db-structure h3 {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 1.1rem;
+    color: var(--primary-color, #a06bff);
+}
+
+.db-structure p {
+    opacity: 0.8;
+    margin-bottom: 1rem;
+}
+
+/* Highlighted card for User Uploads & Privacy */
+.highlight-card {
+    border: 1px solid rgba(160, 107, 255, 0.4);
+    background: linear-gradient(135deg, rgba(160, 107, 255, 0.05), rgba(255, 107, 107, 0.05));
+}
+
+/* Floating animation keyframes */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* ==========================================================================
+   Dark Mode Adjustments
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+    .about-card {
+        background: rgba(20, 20, 30, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .tech-list li {
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        color: #e0e0e0;
+    }
+    .card-body p {
+        color: #e0e0e0;
+    }
+    .hero-subtitle {
+        color: #e0e0e0;
+    }
+}

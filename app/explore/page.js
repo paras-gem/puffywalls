@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import SearchBar from "../../components/SearchBar"; 
+import { Heart, Download, FolderPlus } from "lucide-react";
 import './ExplorePage.css'; 
 
 const CATEGORIES = ["Abstract", "AMOLED", "Nature", "Minimalist", "Gaming", "Anime", "Architecture", "Cars"];
@@ -86,7 +87,15 @@ export default function ExplorePage() {
                                     className="wallpaper-image"
                                 />
                                 <div className="wallpaper-overlay">
-                                    <p className="photographer-name">📸 {wallpaper.photographer}</p>
+                                    <div className="wallpaper-info">
+                                        <h3>{wallpaper.alt || 'Untitled Artwork'}</h3>
+                                        <p className="photographer-name">📸 {wallpaper.photographer}</p>
+                                    </div>
+                                    <div className="wallpaper-actions">
+                                        <button className="wallpaper-btn" title="like"> <Heart size={20}/> </button>
+                                        <button className="wallpaper-btn" title="Save"> <FolderPlus size={20}/> </button>
+                                        <button className="wallpaper-btn" title="download"> <Download size={20}/> </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}

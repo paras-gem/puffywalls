@@ -10,13 +10,15 @@ export async function GET(request) {
         // this query if the user searched for something or clicked a category
         const query = searchParams.get("query");
 
-        // decides which pexels endpoint to hit based on whether we have a query
-        let pexelsUrl= `https://api.pexels.com/v1/curated?page=${page}&per_page=${perPage}`;
+        // To ensure we get actual wallpaper-worthy photos (and avoid random unrelated pictures),
+        // we force the search endpoint with "wallpaper" keywords, instead of using the generic 'curated' feed.
+        let searchQuery = query && query !== 'All' ? `${query} wallpaper background` : "aesthetic beautiful wallpaper";
         
-        // if there is a query use the search endpoint
-        if(query){
-            pexelsUrl = `https://api.pexels.com/v1/search?query=${query}&page=${page}&per_page=${perPage}`;
-        }
+        // Encode the query string to handle spaces properly
+        const encodedQuery = encodeURIComponent(searchQuery);
+
+        // We use the search endpoint exclusively with our safety keywords
+        const pexelsUrl = `https://api.pexels.com/v1/search?query=${encodedQuery}&page=${page}&per_page=${perPage}`;
 
         // fetch the photos from pexels securely
         const response = await fetch(pexelsUrl, {

@@ -1,0 +1,260 @@
+/* ==========================================================================
+   Home Page Styles
+   ========================================================================== */
+
+/* Main container ensuring the page takes up full height */
+.home-page {
+    min-height: 100vh;
+    padding-bottom: 2rem;
+    position: relative;
+}
+
+/* 
+   Hero Section 
+   Creates a large, visually appealing header area with a soft gradient background
+*/
+.hero {
+    position: relative;
+    /* Increased top padding to bring text down slightly */
+    margin-top: -90px;
+    padding: 10rem 2rem 6rem;
+    text-align: center;
+    /* Added background image behind the hero section with a dark overlay to make text pop */
+    background: linear-gradient(135deg, rgba(10, 10, 20, 0.5), rgba(30, 20, 40, 0.6)), 
+     url('/hero-banner.png');
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    border-radius: 0 0 30px 30px;
+    margin-bottom: 2rem;
+    animation: moveBackground 10s ease-in-out infinite; 
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: inherit;
+    background-size: cover;
+    background-position: center;
+    filter: blur(2px);
+}
+
+/* 
+   Hero Title 
+   Uses a gradient text effect and an entrance animation for a premium feel
+*/
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, var(--primary-color, #ff6b6b), #a06bff);
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: fadeInDown 0.8s ease;
+}
+
+/* Hero Subtitle fading in slightly after the title */
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-color, #8B5CF6);
+    opacity: 0.8;
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.8s ease 0.2s both;
+}
+
+/* 
+   Categories Container 
+   Flexbox layout to center and wrap category filter buttons
+*/
+.categories-container {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    /* Pushed categories further down from the welcome text */
+    margin-top: 3rem; 
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+}
+
+/* 
+   Category Pill (Button)
+   Glassmorphism effect with blur and semi-transparent background
+*/
+.category-pill {
+   padding: 8px 20px;
+    border-radius: 30px;
+    border: 1px solid rgba(136, 146, 176, 0.3);
+    background-color: transparent;
+    color: inherit; /* Inherits text color so light/dark mode works */
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+
+/* Hover and Active states for category pills */
+.category-pill:hover, .category-pill.active {
+   border-color: #a6c1ee;
+   background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
+    color: #0f1115 !important;
+    border: none;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(166, 193, 238, 0.4);
+}
+
+
+/* Container pushing images further down */
+.explore-content {
+    margin-top: 4rem;
+}
+
+/* 
+   Wallpapers Grid 
+   Standard responsive CSS grid layout
+*/
+.wallpapers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 0 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* 
+   Wallpaper Card
+   Container for each individual wallpaper item. 
+*/
+.wallpaper-card {
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Lift up the card on hover for interactivity */
+.wallpaper-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* The actual image inside the card */
+.wallpaper-img {
+    width: 100%;
+    display: block;
+    height: auto;
+    transition: transform 0.5s ease;
+}
+
+/* Slight zoom effect on the image when hovering over the card */
+.wallpaper-card:hover .wallpaper-img {
+    transform: scale(1.05);
+}
+
+/* 
+   Wallpaper Overlay
+   Dark gradient overlay that slides/fades in on hover to show actions and text
+*/
+.wallpaper-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+/* Make overlay visible on card hover */
+.wallpaper-card:hover .wallpaper-overlay {
+    opacity: 1;
+}
+
+/* Typography for the overlay */
+.wallpaper-info h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+}
+
+.wallpaper-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Container for Like, Save, Download buttons */
+.wallpaper-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Action button styling (Glassmorphism circular buttons) */
+.wallpaper-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    backdrop-filter: blur(5px);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.wallpaper-btn:hover {
+    background: #ff6b6b; /* Accent color on hover */
+    transform: scale(1.1); /* Slight pop effect */
+}
+
+/* Keyframe animations for entrance effects */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes moveBackground {
+    0% {
+        background-position: center 0%;
+    }
+    50% {
+        background-position: center 20%;
+    }
+    100% {
+        background-position: center 0%;
+    }
+}   
+
+/* ==========================================================================
+   Dark Mode Adjustments
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+    .hero-section {
+        background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(10, 10, 15, 0.8));
+    }
+    .category-pill {
+        color: #e0e0e0;
+        background: rgba(255, 255, 255, 0.05);
+    }
+}

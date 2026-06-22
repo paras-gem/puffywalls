@@ -151,15 +151,18 @@ export default function SettingsPage() {
                             <h2>Security</h2>
                         </div>
                         <div className="form-group">
-                            <label>New Password</label>
+                            <label>Current Password</label>
                             <div className="input-wrapper">
                                 <Lock className="input-icon" />
                                 <input
                                     type="password"
-                                    placeholder="Enter new password to change"
+                                    placeholder="Enter current password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                 />
+                            </div>
+                            <div style={{ marginTop: '8px', fontSize: '14px' }}>
+                                Forgot your password? <a href="/forgot-password" style={{ color: 'var(--primary-color, #3b82f6)', textDecoration: 'underline' }}>Reset it here</a>
                             </div>
                         </div>
                     </section>

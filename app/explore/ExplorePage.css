@@ -230,12 +230,21 @@
     opacity: 0;
     transform: translateY(10px);
     transition: opacity 0.3s ease, transform 0.3s ease;
-    pointer-events: none;
+    /* Removed pointer-events: none; so buttons are clickable! */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
 }
 
 .wallpaper-card:hover .wallpaper-overlay {
     opacity: 1;
     transform: translateY(0);
+}
+
+.wallpaper-info h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+    color: white;
 }
 
 .photographer-name {
@@ -244,4 +253,28 @@
     font-size: 0.95rem;
     font-weight: 500;
     text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.wallpaper-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.wallpaper-btn {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(5px);
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.wallpaper-btn:hover {
+    background: #ff69b4; /* highlight color */
 }

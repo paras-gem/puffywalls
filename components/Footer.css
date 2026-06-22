@@ -1,0 +1,106 @@
+/* ==========================================================================
+   Footer Styles
+   Beautiful, glassmorphism-inspired footer that adapts to dark/light mode
+   ========================================================================== */
+
+/* 
+   Main Footer Wrapper 
+   Ensure you add className="puffy-footer" to the outermost <div> in Footer.js
+*/
+.puffy-footer {
+    position: relative;
+    background: rgba(255, 255, 255, 0.05); /* Slight transparent background */
+    backdrop-filter: blur(15px);           /* Glassmorphism blur effect */
+    border-top: 1px solid rgba(136, 146, 176, 0.2); /* Subtle top border */
+    padding: 4rem 2rem 1.5rem;             /* Generous padding for breathing room */
+    margin-top: auto;                      /* Pushes footer to bottom of page if wrapper is flex */
+    font-family: 'Inter', sans-serif;
+}
+
+/* 
+   Footer Top Section 
+   Usually contains the brand name/logo on the left, and columns of links on the right
+*/
+.footer-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: 2rem;
+}
+
+/* 
+   Footer Bottom Section 
+   Usually contains the copyright text and a thin separator line above it
+*/
+.footer-bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(136, 146, 176, 0.2);
+    text-align: center;
+    font-size: 0.9rem;
+    color: #8892b0;
+}
+
+/* ==========================================================================
+   Pre-built Component Classes (Use these inside footer-top or bottom!)
+   ========================================================================== */
+
+/* Styling for the Brand Name/Logo text area */
+.footer-brand h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0 0 1rem;
+    background: linear-gradient(90deg, #ff69b4 0%, #a6c1ee 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.footer-brand p {
+    color: #8892b0;
+    max-width: 300px;
+    line-height: 1.6;
+}
+
+/* Styling for vertical columns of links (e.g. "Explore", "Legal") */
+.footer-links-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.footer-links-group h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: inherit; /* Inherits text color based on light/dark mode */
+}
+
+.footer-links-group a {
+    color: #8892b0;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+/* Smooth hover effect highlighting your pink aesthetic */
+.footer-links-group a:hover {
+    color: #ff69b4; 
+}
+
+/* 
+   Dark Mode Adjustments
+   Ensures the footer looks perfect on dark themes by deepening the background
+*/
+@media (prefers-color-scheme: dark) {
+    .puffy-footer {
+        background: rgba(15, 17, 21, 0.8);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .footer-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+}
