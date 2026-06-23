@@ -6,7 +6,7 @@ import { useAuth } from '../../lib/AuthContext';
 import { updateProfile, updateEmail, updatePassword, deleteUser } from 'firebase/auth';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Mail, Lock, User, Save, Settings as SettingsIcon, Shield, FolderHeart, AlertTriangle, Trash2 } from 'lucide-react';
+import { Mail, Lock, User, Save, Settings as SettingsIcon, Shield, FolderHeart, AlertTriangle, Trash2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
@@ -15,7 +15,12 @@ export default function SettingsPage() {
 
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
+    const [currentPassword, setCurrentPassword] = useState(''); 
     const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -27,6 +32,12 @@ export default function SettingsPage() {
 
     const handleSave = async () => {
         if (!user) return;
+        
+        if (newPassword && newPassword !== confirmPassword) {
+            toast.error("New passwords do not match!");
+            return;
+        }
+
         setIsSaving(true);
         try {
             const updates = [];
@@ -43,7 +54,9 @@ export default function SettingsPage() {
             if (updates.length > 0) {
                 await Promise.all(updates);
                 toast.success("Settings updated successfully!");
+                setCurrentPassword('');
                 setNewPassword('');
+                setConfirmPassword('');
             } else {
                 toast.info("No changes to save.");
             }
@@ -155,13 +168,52 @@ export default function SettingsPage() {
                             <div className="input-wrapper">
                                 <Lock className="input-icon" />
                                 <input
-                                    type="password"
-                                    placeholder="Enter current password"
+                                    type={showCurrentPassword ? "text" : "password"}
+                                    placeholder="Enter current password"    
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', color: 'inherit' }}
+                                />
+                                <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+                                    {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+
+                            <label style={{ marginTop: '1rem', display: 'block' }}>New Password</label>
+                            <div className="input-wrapper">
+                                <Lock className="input-icon" />
+                                <input
+                                    type={showNewPassword ? "text" : "password"}
+                                    placeholder="New Password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
+                                    style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', color: 'inherit' }}
                                 />
+                                <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+                                    {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
                             </div>
-                            <div style={{ marginTop: '8px', fontSize: '14px' }}>
+
+                            <label style={{ marginTop: '1rem', display: 'block' }}>Confirm New Password</label>
+                            <div className="input-wrapper" style={{ borderColor: newPassword && confirmPassword && newPassword !== confirmPassword ? '#ef4444' : undefined }}>
+                                <Lock className="input-icon" />
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    placeholder="Confirm New Password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', color: 'inherit' }}
+                                />
+                                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+                                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                            
+                            {newPassword && confirmPassword && newPassword !== confirmPassword && (
+                                <p style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '0.5rem' }}>Passwords do not match</p>
+                            )}
+
+                            <div style={{ marginTop: '1rem', fontSize: '14px' }}>
                                 Forgot your password? <a href="/forgot-password" style={{ color: 'var(--primary-color, #3b82f6)', textDecoration: 'underline' }}>Reset it here</a>
                             </div>
                         </div>
