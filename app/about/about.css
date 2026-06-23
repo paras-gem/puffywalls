@@ -8,6 +8,18 @@
     padding: 4rem 2rem;
     display: flex;
     justify-content: center;
+    animation: slideUp 1s ease-in-out;    
+}   
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Constrain width for better readability */
