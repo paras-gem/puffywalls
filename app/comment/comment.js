@@ -46,5 +46,18 @@
  * 8. Backend API Directories Setup
  *    - API Routes Created: Initialized `app/api/wallpapers` and `app/api/favorites` directories.
  *    - Why: These folders will house our Next.js backend API routes (e.g., `route.js`) to securely communicate with the Pexels API and MongoDB, separating backend logic from frontend pages.
+ * 
+ * 9. Global Share Modal & Context Setup
+ *    - Strategy: We built a fully featured Share Modal that can be opened from anywhere in the app.
+ *    - Implementation: Created `lib/ShareModalContext.js` to manage the modal's global state (`isOpen`, `wallpaperData`). We wrapped `app/layout.js` with `<ShareModalProvider>` so the modal sits globally above the entire app and can be triggered by calling `openModal(wallpaper)` from any page.
+ *    - CSS Enhancements: Refactored `ShareModal.css` using modern CSS variables (e.g., `--share-bg`), added glassmorphism blur effects, `@keyframes` animations for both opening and closing (`shareModalIn` / `shareModalOut`), and used real SVG social brand icons.
+ *    - Features: Added UI for downloading, changing orientation aspect ratios, and placeholder actions for Comment, Rate, Report, and Save to Collection.
+ * 
+ * 10. Feed Interactivity (Like & Share functionality)
+ *    - Pages Updated: Applied interactivity to `app/page.js` (Home), `app/explore/page.js`, and `app/trending/page.js`.
+ *    - Like Button Logic: Implemented a fast React `Set` hook (`const [likedIds, setLikedIds] = useState(new Set())`) to efficiently track liked wallpapers locally. The `<Heart>` icon dynamically updates its `fill` and `color` props based on its liked state.
+ *    - Event Bubbling Handling: Attached `onClick={() => openModal(wallpaper)}` to the entire wallpaper card wrapper, while using `e.stopPropagation()` on the individual overlay action buttons (Like, Download, Share) so clicking a button doesn't accidentally trigger the background card click as well.
+ * 11. Share Modal Interactivity & Toasts
+ *    - Made action buttons (Download, Comment, Rate, Report, Save to Collection) active in ShareModal.
+ *    - Added smooth sonner toast notifications for all interactions (sharing, downloading, reporting, copying link).
  */
-

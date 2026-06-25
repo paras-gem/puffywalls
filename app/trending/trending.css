@@ -1,86 +1,369 @@
-/* ==========================================================================
-   Trending Page Styles
-   ========================================================================== */
+/* =============================================
+   TRENDING PAGE — PuffyWalls
+   ============================================= */
 
-/* Main container ensuring the page takes up full height */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 .trending-page {
     min-height: 100vh;
-    padding-bottom: 3rem;
+    font-family: 'Inter', sans-serif;
 }
 
-/* 
-   Trending Header 
-   Features a warm, fiery gradient background to indicate "hot" or "trending"
-*/
-.trending-header {
+/* ── HERO ── */
+.trending-hero {
+    position: relative;
+    width: 100%;
+    padding: 140px 20px 70px;
     text-align: center;
-    padding: 4rem 2rem;
-    background: linear-gradient(135deg, rgba(255, 118, 117, 0.15), rgba(253, 121, 168, 0.15));
-    margin-bottom: 3rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    overflow: hidden;
+    margin-top: -88px;
+    z-index: 1;
 }
 
-/* Flex container to align the flame icon and the heading */
-.header-title {
+.trending-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('https://images.unsplash.com/photo-1533134486753-c833f0ed4866?q=80&w=2560&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+    animation: heroZoom 10s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+@keyframes heroZoom {
+    0%   { transform: scale(1); }
+    100% { transform: scale(1.15); }
+}
+
+.trending-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(10, 5, 20, 0.55) 0%,
+        rgba(10, 5, 20, 0.92) 100%
+    );
+    z-index: 0;
+}
+
+.trending-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+/* Trending Live Badge */
+.trending-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 50px;
+    background: rgba(255, 80, 80, 0.2);
+    border: 1px solid rgba(255, 80, 80, 0.4);
+    color: #ff6b6b;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+    50%       { opacity: 0.85; box-shadow: 0 0 0 8px rgba(255, 107, 107, 0); }
+}
+
+.trending-hero-content h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 0.8rem;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.gradient-text {
+    background: linear-gradient(90deg, #ff6b6b, #fbc2eb, #a6c1ee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.trending-hero-content p {
+    font-size: 1.15rem;
+    color: #cbd5e1;
+    margin-bottom: 2.5rem;
+}
+
+/* ── TRENDING TAGS ── */
+.trending-tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.trend-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 18px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(8px);
+}
+
+.trend-tag:hover {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.5);
+    color: #ff9999;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(255, 80, 80, 0.25);
+}
+
+.trend-tag.active {
+    background: linear-gradient(135deg, #ff6b6b, #ff9a9e);
+    border-color: transparent;
+    color: #ffffff !important;
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(255, 80, 80, 0.45);
+    transform: translateY(-2px);
+}
+
+.tag-flame {
+    color: #ffe066;
+}
+
+/* ── STATS BAR ── */
+.trending-stats-bar {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-/* Trending Title with a gradient text effect */
-.header-title h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    margin: 0;
-    background: linear-gradient(to right, #ff7675, #fd79a8);
-    -webkit-background-clip: text;
-    color: transparent;
-}
-
-/* 
-   Flame Icon
-   Adds a pulsing animation to make the header feel active/live
-*/
-.fire-icon {
-    color: #ff7675;
-    animation: pulseFire 2s infinite ease-in-out;
-}
-
-/* Keyframes for the pulsing flame effect */
-@keyframes pulseFire {
-    0% { transform: scale(1); opacity: 0.8; }
-    50% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); opacity: 0.8; }
-}
-
-/* Subtitle styling */
-.header-subtitle {
-    font-size: 1.2rem;
-    color: var(--text-color, #333);
+    justify-content: space-between;
+    padding: 14px 5%;
+    border-bottom: 1px solid rgba(136, 146, 176, 0.12);
+    font-size: 0.9rem;
+    color: inherit;
     opacity: 0.8;
 }
 
-/* Like count display on trending cards */
-.likes-count {
+.stat-item {
     display: flex;
     align-items: center;
-    gap: 0.3rem;
-    color: #ff7675;
-    font-weight: 500;
+    gap: 8px;
 }
 
-/* Small heart icon next to the like count */
-.heart-icon-small {
-    fill: #ff7675;
+.stat-item strong {
+    color: #ff6b6b;
 }
 
-/* ==========================================================================
-   Dark Mode Adjustments
-   ========================================================================== */
-@media (prefers-color-scheme: dark) {
-    .trending-header {
-        background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(255, 118, 117, 0.05));
+/* ── CONTENT + GRID ── */
+.trending-content {
+    padding: 32px 5% 80px;
+}
+
+/* Masonry-style variable grid using aspect-ratio variation */
+.trending-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 18px;
+}
+
+/* ── CARD ── */
+.trending-card {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    cursor: pointer;
+    background: rgba(136, 146, 176, 0.08);
+    aspect-ratio: 9 / 16;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: cardFadeIn 0.5s ease-out forwards;
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+@keyframes cardFadeIn {
+    to { opacity: 1; transform: scale(1); }
+}
+
+.trending-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+/* Featured top-3 cards get slightly larger on desktop */
+@media (min-width: 900px) {
+    .featured-card {
+        grid-row: span 1;
+        border: 2px solid rgba(255, 107, 107, 0.35);
     }
+    .featured-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 18px;
+        box-shadow: inset 0 0 30px rgba(255, 107, 107, 0.15);
+        pointer-events: none;
+    }
+}
+
+/* Rank Badge */
+.rank-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.rank-badge--hot {
+    background: linear-gradient(135deg, #ff4747, #ff9a3c);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 71, 71, 0.45);
+}
+
+/* Image */
+.trending-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.trending-card:hover .trending-img {
+    transform: scale(1.07);
+}
+
+/* ── OVERLAY ── */
+.trending-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 16px 16px;
+    background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0) 100%);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.trending-card:hover .trending-overlay {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.trending-info h3 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.photographer-tag {
+    margin: 0;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.75);
+}
+
+/* ── ACTION BUTTONS ── */
+.trending-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.trend-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    padding: 0;
+}
+
+.trend-btn:hover {
+    background: rgba(255, 105, 180, 0.7);
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(255, 105, 180, 0.4);
+    color: #fff;
+    border-color: transparent;
+}
+
+.trend-btn.liked {
+    background: rgba(255, 105, 180, 0.5);
+}
+
+.trend-btn.download-btn:hover {
+    background: rgba(100, 200, 130, 0.7);
+    box-shadow: 0 4px 12px rgba(100, 200, 130, 0.4);
+}
+
+/* ── LOADING ── */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 35vh;
+    gap: 16px;
+    color: #8892b0;
+}
+
+.flame-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spinner-flame {
+    color: #ff6b6b;
+    animation: flamePulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes flamePulse {
+    from { transform: scale(1);   opacity: 0.7; }
+    to   { transform: scale(1.3); opacity: 1; }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+    .trending-hero-content h1 { font-size: 2.2rem; }
+    .trending-content         { padding: 24px 4% 60px; }
+    .trending-grid            { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    .trending-stats-bar       { padding: 12px 4%; }
 }

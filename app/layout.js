@@ -2,7 +2,8 @@ import './globals.css';
 import { ThemeProvider } from '../components/ThemeProvider';
 import Header from '../components/Header';
 import Footer from '../components/Footer';  
-import AuthProvider from '../lib/AuthContext' 
+import AuthProvider from '../lib/AuthContext';
+import { ShareModalProvider } from '../lib/ShareModalContext';
 import { Toaster } from 'sonner';
 
 // the metaData export is coming from public folder as all the icon files are there only
@@ -28,10 +29,12 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <Header />
-            {children} 
-            <Toaster richColors position="top-center" />
-            <Footer />
+            <ShareModalProvider>
+              <Header />
+              {children} 
+              <Toaster richColors position="top-center" />
+              <Footer />
+            </ShareModalProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>
