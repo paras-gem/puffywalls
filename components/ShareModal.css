@@ -205,6 +205,29 @@
 }
 
 /* ─────────────────────────────────────────────
+   Save panel inside share modal
+   ───────────────────────────────────────────── */
+.save-panel {
+    margin-top: 18px;
+    padding: 14px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 12px;
+}
+.save-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.save-choices { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.collection-choice { padding: 8px 12px; border-radius: 12px; background: rgba(255,255,255,0.03); color: #fff; border: 1px solid rgba(255,255,255,0.04); cursor: pointer; }
+.save-create-form { display:flex; gap:8px; }
+.save-create-form input { flex:1; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.2); color: #fff; }
+.create-save-btn { padding:8px 12px; border-radius:10px; border:none; background:linear-gradient(135deg,#fbc2eb,#a6c1ee); color:#0f1115; font-weight:700; cursor:pointer; }
+.btn-close-save { background: transparent; border: none; color: var(--share-text-secondary); cursor: pointer; }
+
+/* ─────────────────────────────────────────────
    ACTIONS GRID
    ───────────────────────────────────────────── */
 .share-actions-grid {
@@ -506,9 +529,22 @@
 
 .share-platforms-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     margin-bottom: 24px;
+}
+
+.share-native-btn {
+    min-height: 54px;
+    justify-content: center;
+}
+
+.comments-section {
+    margin-top: 20px;
+}
+
+.comments-section .share-section-label {
+    margin-bottom: 14px;
 }
 
 .share-platform-btn {

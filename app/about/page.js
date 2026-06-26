@@ -1,6 +1,40 @@
+'use client';
+
+import { useState } from 'react';
 import './about.css';
 
 export default function About() {
+    const [feedbackType, setFeedbackType] = useState('feedback');
+    const [message, setMessage] = useState('');
+    const [email, setEmail] = useState('');
+    const [submitted, setSubmitted] = useState(false);
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const trimmedMessage = message.trim();
+        if (!trimmedMessage) return;
+
+        const entry = {
+            id: Date.now(),
+            type: feedbackType,
+            message: trimmedMessage,
+            email: email.trim(),
+            createdAt: new Date().toISOString(),
+        };
+
+        try {
+            const existing = JSON.parse(window.localStorage.getItem('puffywalls_feedback') || '[]');
+            window.localStorage.setItem('puffywalls_feedback', JSON.stringify([entry, ...existing]));
+        } catch (error) {
+            console.error('Unable to save feedback', error);
+        }
+
+        setSubmitted(true);
+        setMessage('');
+        setEmail('');
+        setFeedbackType('feedback');
+    };
+
     return (
         <div className="about-page">
             <div className="about-container">
@@ -13,7 +47,7 @@ export default function About() {
                     </div>
                     <h1>About Puffywalls</h1>
                     <p className="hero-subtitle">Discover stunning, dreamy and high quality wallpapers.</p>
-                </div>  
+                </div>
 
                 <div className="about-content">
                     <div className="about-card">
@@ -36,8 +70,8 @@ export default function About() {
                                 <li>Next.js - Framework</li>
                                 <li>React - UI Library</li>
                                 <li>Plain CSS - Styling</li>
-                                <li>MongoDB - Database </li>
-                                <li> Firebase - Authentication</li>
+                                <li>MongoDB - Database</li>
+                                <li>Firebase - Authentication</li>
                             </ul>
                         </div>
                     </div>
@@ -55,8 +89,58 @@ export default function About() {
                         </div>
                     </div>
 
-                    
-                    
+                    <div className="about-card feedback-card">
+                        <div className="card-header">
+                            <span className="icon">📝</span>
+                            <h2>Share Feedback</h2>
+                        </div>
+                        <div className="card-body">
+                            <p>Tell us what you love, what could be better, or suggest a new feature.</p>
+                            <form className="feedback-form" onSubmit={handleSubmit}>
+                                <div className="feedback-row">
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="type"
+                                            value="feedback"
+                                            checked={feedbackType === 'feedback'}
+                                            onChange={() => setFeedbackType('feedback')}
+                                        />
+                                        Feedback
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="type"
+                                            value="feature"
+                                            checked={feedbackType === 'feature'}
+                                            onChange={() => setFeedbackType('feature')}
+                                        />
+                                        Suggest a Feature
+                                    </label>
+                                </div>
+                                <textarea
+                                    className="feedback-textarea"
+                                    placeholder={feedbackType === 'feedback' ? 'Your feedback...' : 'Describe a feature you would love to see...'}
+                                    value={message}
+                                    onChange={(event) => setMessage(event.target.value)}
+                                    rows={6}
+                                    required
+                                />
+                                <input
+                                    type="email"
+                                    className="feedback-input"
+                                    placeholder="Email (optional)"
+                                    value={email}
+                                    onChange={(event) => setEmail(event.target.value)}
+                                />
+                                <button type="submit" className="feedback-submit-btn">
+                                    Send {feedbackType === 'feedback' ? 'Feedback' : 'Request'}
+                                </button>
+                                {submitted && <p className="feedback-success">Thanks! Your {feedbackType === 'feedback' ? 'feedback' : 'feature request'} has been submitted.</p>}
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

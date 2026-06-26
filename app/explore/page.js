@@ -22,6 +22,10 @@ export default function ExplorePage() {
     // We use a Set to keep track of which wallpapers the user has 'liked'.
     // A Set is fast and efficient for checking existence (e.g., likedIds.has(id)).
     const [likedIds, setLikedIds] = useState(new Set());
+    const [showCollectionModal, setShowCollectionModal] = useState(false);
+    const [selectedWallpaperForSave, setSelectedWallpaperForSave] = useState(null);
+    const [collectionNames, setCollectionNames] = useState([]);
+    const [newCollectionName, setNewCollectionName] = useState('');
 
     // Hook from our custom ShareModalContext to globally trigger the share modal overlay
     const { openModal } = useShareModal();
@@ -49,7 +53,79 @@ export default function ExplorePage() {
     // Load initial category feed on page render
     useEffect(() => {
         fetchWallpapers(currentQuery);
-    }, []); 
+    }, [currentQuery]); 
+
+    const loadCollections = () => {
+        try {
+            const saved = window.localStorage.getItem('user_collections');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                setCollectionNames(Object.keys(parsed));
+                return parsed;
+            }
+        } catch (error) {
+            console.error('Fetch collections failed', error);
+        }
+
+        const seedData = {
+            Favorites: [],
+            'Aesthetic Themes': [],
+            'Neon Horizon Setup': [],
+        };
+
+        window.localStorage.setItem('user_collections', JSON.stringify(seedData));
+        setCollectionNames(Object.keys(seedData));
+        return seedData;
+    };
+
+    const openSaveModal = (wallpaper, event) => {
+        event.stopPropagation();
+        setSelectedWallpaperForSave(wallpaper);
+        setShowCollectionModal(true);
+        const currentCollections = loadCollections();
+        setCollectionNames(Object.keys(currentCollections));
+    };
+
+    const closeSaveModal = () => {
+        setShowCollectionModal(false);
+        setSelectedWallpaperForSave(null);
+        setNewCollectionName('');
+    };
+
+    const saveWallpaperToCollection = (collectionName) => {
+        if (!selectedWallpaperForSave) return;
+
+        const currentCollections = loadCollections();
+        const collection = currentCollections[collectionName] || [];
+        if (collection.some((item) => item.id === selectedWallpaperForSave.id)) {
+            toast.error(`Already saved to ${collectionName}`);
+            return;
+        }
+
+        currentCollections[collectionName] = [...collection, selectedWallpaperForSave];
+        window.localStorage.setItem('user_collections', JSON.stringify(currentCollections));
+        toast.success(`Saved to ${collectionName}`);
+        closeSaveModal();
+    };
+
+    const handleCreateCollectionAndSave = (event) => {
+        event.preventDefault();
+        const trimmed = newCollectionName.trim();
+        if (!trimmed || !selectedWallpaperForSave) return;
+
+        const currentCollections = loadCollections();
+        if (currentCollections[trimmed]) {
+            toast.error('A collection with this name already exists.');
+            return;
+        }
+
+        currentCollections[trimmed] = [selectedWallpaperForSave];
+        window.localStorage.setItem('user_collections', JSON.stringify(currentCollections));
+        setNewCollectionName('');
+        setCollectionNames(Object.keys(currentCollections));
+        toast.success(`Created ${trimmed} and saved wallpaper.`);
+        closeSaveModal();
+    };
 
     // === EVENT HANDLERS ===
 
@@ -209,7 +285,10 @@ export default function ExplorePage() {
                                             <button 
                                                 className="wallpaper-btn" 
                                                 title="Save"
-                                                onClick={(e) => e.stopPropagation()}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openSaveModal(wallpaper, e);
+                                                }}
                                             > 
                                                 <FolderPlus size={20}/> 
                                             </button>
@@ -218,27 +297,25 @@ export default function ExplorePage() {
                                             <button 
                                                 className="wallpaper-btn" 
                                                 title="Download"
-                                                // Always triggers raw maximum original wallpaper resolution parameter stream for file downloads
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     triggerDownload(wallpaper.src.original, wallpaper.alt || 'download');
                                                 }}
                                             > 
                                                 <Download size={20}/> 
-                                            </button>
+                                            </button>  
 
-                                            {/* SHARE BUTTON */}
-                                            <button 
-                                                className="wallpaper-btn" 
-                                                title="Share" 
-                                                onClick={(e) => {
-                                                    // Stop propagation so we don't trigger the card's onClick twice
-                                                    e.stopPropagation();
-                                                    openModal(wallpaper);
-                                                }}
-                                            > 
-                                                <Share size={20}/> 
-                                            </button>
+                                              {/* PUBLIC SYSTEM OVERLAY MODAL */}
+                                              <button 
+                                                  className="wallpaper-btn"
+                                                  title="Share Asset" 
+                                                  onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      openModal(wallpaper);
+                                                  }}
+                                                >
+                                                  <Share size={18} />
+                                              </button> 
                                         </div>
                                     </div>
                                 </div>
@@ -247,6 +324,52 @@ export default function ExplorePage() {
                     </div>
                 )}
             </div>
+
+            {showCollectionModal && (
+                <div className="collection-modal-backdrop" onClick={closeSaveModal}>
+                    <div className="collection-modal-card" onClick={(event) => event.stopPropagation()}>
+                        <div className="collection-modal-header">
+                            <h2>Save Wallpaper</h2>
+                            <p>Choose an existing collection or create a new one.</p>
+                        </div>
+
+                        <div className="collection-list">
+                            {collectionNames.length > 0 ? (
+                                collectionNames.map((name) => (
+                                    <button
+                                        key={name}
+                                        type="button"
+                                        className="collection-choice-btn"
+                                        onClick={() => saveWallpaperToCollection(name)}
+                                    >
+                                        {name}
+                                    </button>
+                                ))
+                            ) : (
+                                <p className="collection-empty">No collections found yet. Create one below.</p>
+                            )}
+                        </div>
+
+                        <form className="collection-create-form" onSubmit={handleCreateCollectionAndSave}>
+                            <input
+                                value={newCollectionName}
+                                onChange={(event) => setNewCollectionName(event.target.value)}
+                                placeholder="New collection name"
+                                className="collection-input"
+                                maxLength={24}
+                                required
+                            />
+                            <button type="submit" className="collection-submit-btn">
+                                Create & Save
+                            </button>
+                        </form>
+
+                        <button type="button" className="collection-cancel-btn" onClick={closeSaveModal}>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

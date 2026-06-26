@@ -257,8 +257,17 @@
 
 .wallpaper-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
+    justify-content: flex-end;
+    align-items: center;
 }
+
+.wallpaper-actions button {
+    min-width: 44px;
+}
+
+
 
 .wallpaper-btn {
     background: rgba(255,255,255,0.2);
@@ -277,4 +286,106 @@
 
 .wallpaper-btn:hover {
     background: #ff69b4; /* highlight color */
+}
+
+.collection-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 17, 21, 0.8);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2500;
+    padding: 20px;
+}
+
+.collection-modal-card {
+    width: min(520px, 100%);
+    background: rgba(18, 18, 24, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.45);
+}
+
+.collection-modal-header h2 {
+    margin: 0 0 8px;
+    color: #fff;
+}
+
+.collection-modal-header p {
+    margin: 0 0 18px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.collection-list {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.collection-choice-btn,
+.collection-submit-btn,
+.collection-cancel-btn {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.collection-choice-btn:hover,
+.collection-submit-btn:hover,
+.collection-cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+
+.collection-empty {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.collection-create-form {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.collection-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.collection-input::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.collection-submit-btn {
+    background: linear-gradient(90deg, #fbc2eb, #a6c1ee);
+    color: #0f1115;
+    border: none;
+}
+
+.collection-cancel-btn {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 700px) {
+    .wallpaper-actions {
+        gap: 0.35rem;
+    }
+    .wallpaper-btn {
+        width: 44px;
+        height: 44px;
+    }
 }
