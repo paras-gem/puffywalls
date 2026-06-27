@@ -13,9 +13,7 @@ const withPWA = withPWAInit({
 const nextConfig = {
   /* Core configuration options go here */
   turbopack: {},
-  experimental: {
-    reactCompiler: true, // Enables the experimental React Compiler for automatic performance optimization
-  },
+  reactCompiler: true, // Enables the React Compiler for automatic performance optimization
   images: {
     remotePatterns: [
       {
