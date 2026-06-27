@@ -12,7 +12,8 @@ const withPWA = withPWAInit({
 // 2. Define your base Next.js configuration options
 const nextConfig = {
   /* Core configuration options go here */
-  reactCompiler: true,                 // Enables the experimental React Compiler for automatic performance optimization
+  reactCompiler: true,      
+  turbopack: {},           // Enables the experimental React Compiler for automatic performance optimization
 };
 
 // 3. Export the combined configuration, wrapping your nextConfig with PWA capabilities
