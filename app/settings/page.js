@@ -1,9 +1,10 @@
 'use client';
+
 import './settings.css';
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/AuthContext';
-import { updateProfile, updateEmail, updatePassword, deleteUser } from 'firebase/auth';
+import { updateProfile, updateEmail, updatePassword, deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Mail, Lock, User, Save, Settings as SettingsIcon, Shield, FolderHeart, AlertTriangle, Trash2, Eye, EyeOff } from 'lucide-react';
@@ -30,6 +31,14 @@ export default function SettingsPage() {
         }
     }, [user]);
 
+    if (loading) {
+        return (
+            <div className="settings-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <p>Loading setting parameters...</p>
+            </div>
+        );
+    }
+
     const handleSave = async () => {
         if (!user) return;
         
@@ -38,8 +47,19 @@ export default function SettingsPage() {
             return;
         }
 
+        if ((email !== user.email || newPassword) && !currentPassword) {
+            toast.error("Please enter your current password to confirm these security updates.");
+            return;
+        }
+
         setIsSaving(true);
         try {
+            // Handle critical reauthentication updates securely
+            if ((email !== user.email || newPassword) && currentPassword) {
+                const credential = EmailAuthProvider.credential(user.email, currentPassword);
+                await reauthenticateWithCredential(user, credential);
+            }
+
             const updates = [];
             if (username !== user.displayName) {
                 updates.push(updateProfile(user, { displayName: username }));
@@ -61,6 +81,7 @@ export default function SettingsPage() {
                 toast.info("No changes to save.");
             }
         } catch (error) {
+            console.error(error);
             toast.error(error.message || "Failed to update settings");
         } finally {
             setIsSaving(false);
@@ -76,6 +97,13 @@ export default function SettingsPage() {
 
         try {
             setIsSaving(true);
+            
+            // Reauthenticate safely before structural deletion profiles trigger
+            if (currentPassword) {
+                const credential = EmailAuthProvider.credential(user.email, currentPassword);
+                await reauthenticateWithCredential(user, credential);
+            }
+
             // 1. Delete user's collections/data from Firestore
             await deleteDoc(doc(db, "users", user.uid));
 
@@ -85,11 +113,10 @@ export default function SettingsPage() {
             toast.success("Account deleted successfully.");
             router.push("/");
         } catch (error) {
-            // Firebase requires a recent login to delete an account
             if (error.code === 'auth/requires-recent-login') {
-                toast.error("Security requirement: Please log out and log back in before deleting your account.");
+                toast.error("Security requirement: Please provide your current password in the security card section before choosing to delete your account.");
             } else {
-                toast.error(error.message);
+                toast.error(error.message || "An error occurred during account removal.");
             }
         } finally {
             setIsSaving(false);
@@ -151,7 +178,7 @@ export default function SettingsPage() {
                             <p style={{ color: 'var(--text-color, inherit)', fontSize: '0.9rem', marginBottom: '1rem' }}>
                                 Manage your saved wallpapers and favorites.
                             </p>
-                            <button className="btn-cancel" onClick={() => router.push('/collections')} style={{ width: 'fit-content' }}>
+                            <button type="button" className="btn-cancel" onClick={() => router.push('/collections')} style={{ width: 'fit-content' }}>
                                 View Collections
                             </button>
                         </div>
@@ -230,6 +257,7 @@ export default function SettingsPage() {
                                 Once you delete your account, there is no going back. Please be certain.
                             </p>
                             <button
+                                type="button"
                                 className="btn-cancel"
                                 style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.5)', width: 'fit-content' }}
                                 onClick={handleDeleteAccount}
@@ -243,8 +271,8 @@ export default function SettingsPage() {
 
                     {/* Action Buttons */}
                     <div className="settings-actions">
-                        <button className="btn-cancel" onClick={() => router.back()}>Cancel</button>
-                        <button className="btn-save" disabled={isSaving} onClick={handleSave}>
+                        <button type="button" className="btn-cancel" onClick={() => router.back()}>Cancel</button>
+                        <button type="button" className="btn-save" disabled={isSaving} onClick={handleSave}>
                             <Save className="icon-small" />
                             {isSaving ? 'Saving...' : 'Save Changes'}
                         </button>

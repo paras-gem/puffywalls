@@ -11,14 +11,12 @@ import { fetchFavorites, postFavorite, deleteFavorite } from '@/lib/api';
 import './trending.css';
 
 // Premium trend-focused categories to display in the filter row
-// Swapped "AMOLED 4K" with "Vaporwave" to keep categories fresh and unique
 const TRENDING_CATEGORIES = ["Cyberpunk", "Vaporwave", "Cosmic", "Surrealism", "Fluid Art", "Macro Tech"];
 
 export default function Trending() {
     // === STATE MANAGEMENT ===
     const [wallpapers, setWallpapers] = useState([]);
     const [loading, setLoading] = useState(true);
-    // Defaults to 'Trending' to request highly-engaged design feeds initially
     const [currentQuery, setCurrentQuery] = useState('Trending'); 
     
     // Tracks active user interactions safely with a high-performance memory Set
@@ -112,6 +110,7 @@ export default function Trending() {
                 }
                 return newLiked;
             });
+            toast.success('Liked locally! Sign in to sync across devices.');
             return;
         }
 
@@ -153,7 +152,7 @@ export default function Trending() {
     };
 
     /**
-     * 📥 DIRECT SYSTEM FILE SEEPAGE DOWNLOAD
+     * 📥 DIRECT SYSTEM FILE DOWNLOAD
      * Converts raw external server paths straight into binary arrays to bypass layout tabs.
      */
     const triggerDownload = async (imgUrl, filename) => {
@@ -237,7 +236,6 @@ export default function Trending() {
                     <div className="trending-grid">
                         {wallpapers.map((wallpaper, index) => {
                             const isLiked = likedIds.has(wallpaper.id);
-                            // Highlight top three elements visually with class triggers
                             const isFeatured = index < 3;
 
                             return (
@@ -254,7 +252,7 @@ export default function Trending() {
 
                                     {/* WALLPAPER RENDER IMAGE */}
                                     <img 
-                                        src={wallpaper.src[imageFormat] || wallpaper.src.large} 
+                                        src={wallpaper?.src?.[imageFormat] || wallpaper?.src?.large || ''} 
                                         alt={wallpaper.alt || 'Trending Artwork'} 
                                         className="trending-img"
                                         loading="lazy"
@@ -264,13 +262,14 @@ export default function Trending() {
                                     <div className="trending-overlay">
                                         <div className="trending-info">
                                             <h3>{wallpaper.alt || 'Premium Canvas Collection'}</h3>
-                                            <p className="photographer-tag">📸 {wallpaper.photographer}</p>
+                                            <p className="photographer-tag">📸 {wallpaper.photographer || 'Unknown'}</p>
                                         </div>
                                         
                                         {/* EXPANDED ACTION ITEM DECK */}
                                         <div className="trending-actions">
                                             {/* LIKE SYSTEM CONTROL */}
                                             <button 
+                                                type="button"
                                                 className={`trend-btn ${isLiked ? 'liked' : ''}`}
                                                 title="Like Asset" 
                                                 onClick={(e) => {
@@ -287,20 +286,25 @@ export default function Trending() {
                                             
                                             {/* SYSTEM SAVING OVERLAY */}
                                             <button 
+                                                type="button"
                                                 className="trend-btn"
                                                 title="Save to Vault"
-                                                onClick={(e) => e.stopPropagation()}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openModal(wallpaper);
+                                                }}
                                             >
                                                 <Plus size={18} />
                                             </button>
                                             
                                             {/* HARD FILESYSTEM DOWNLOAD PIPELINE */}
                                             <button 
+                                                type="button"
                                                 className="trend-btn download-btn"
                                                 title="Download Original Asset"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    triggerDownload(wallpaper.src.original, wallpaper.alt || 'trending-file');
+                                                    triggerDownload(wallpaper?.src?.original, wallpaper.alt || 'trending-file');
                                                 }}
                                             >
                                                 <Download size={18} />
@@ -308,6 +312,7 @@ export default function Trending() {
                                             
                                             {/* PUBLIC SYSTEM OVERLAY MODAL */}
                                             <button 
+                                                type="button"
                                                 className="trend-btn"
                                                 title="Share Asset" 
                                                 onClick={(e) => {

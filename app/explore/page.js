@@ -1,27 +1,108 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
+import Image from "next/image";
 import SearchBar from "../../components/SearchBar"; 
 import { Heart, Download, FolderPlus, Share } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext"; 
 import { toast } from "sonner";
 import { useImageFormat } from "@/hooks/useImageFormat";
-import { useShareModal } from "../../lib/ShareModalContext"; // Import our global modal context
+import { useShareModal } from "../../shareModalContext"; // Adjusted path to standard conventions
 import { fetchUserCollections, createCollection, updateCollection, logEngagement, fetchFavorites, postFavorite, deleteFavorite } from "@/lib/api";
 import './ExplorePage.css'; 
 
-// Pre-defined wallpaper collections for the top filter pill-row
 const CATEGORIES = ["Abstract", "AMOLED", "Nature", "Minimalist", "Gaming", "Anime", "Architecture", "Cars"];
 
+// === MEMOIZED SUB-COMPONENT TO ELIMINATE PARENT RERENDERS ===
+const WallpaperCard = memo(({ wallpaper, isLiked, imageFormat, onOpenModal, onOpenSaveModal, onToggleLike, onTriggerDownload }) => {
+    return (
+        <div 
+            className="wallpaper-card"
+            onClick={() => onOpenModal(wallpaper)}
+            style={{ cursor: 'pointer', position: 'relative' }}
+        >
+            <div style={{ position: 'relative', width: '100%', height: '400px' }}>
+                <Image 
+                    src={wallpaper.src[imageFormat] || wallpaper.src.large} 
+                    alt={wallpaper.alt || 'Wallpaper'} 
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="wallpaper-image"
+                    style={{ objectFit: 'cover' }}
+                    priority={false}
+                />
+            </div>
+            
+            <div className="wallpaper-overlay">
+                <div className="wallpaper-info">
+                    <h3>{wallpaper.alt || 'Untitled Artwork'}</h3>
+                    <p className="photographer-name">📸 {wallpaper.photographer}</p>
+                </div>
+                <div className="wallpaper-actions">
+                    {/* LIKE BUTTON */}
+                    <button 
+                        className={`wallpaper-btn ${isLiked ? 'liked' : ''}`} 
+                        title="Like" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleLike(wallpaper.id);
+                        }}
+                    > 
+                        <Heart 
+                            size={20} 
+                            fill={isLiked ? "#ff4757" : "transparent"} 
+                            color={isLiked ? "#ff4757" : "currentColor"}
+                        /> 
+                    </button>
+                    
+                    {/* SAVE BUTTON */}
+                    <button 
+                        className="wallpaper-btn" 
+                        title="Save"
+                        onClick={(e) => onOpenSaveModal(wallpaper, e)}
+                    > 
+                        <FolderPlus size={20}/> 
+                    </button>
+                    
+                    {/* DOWNLOAD BUTTON */}
+                    <button 
+                        className="wallpaper-btn" 
+                        title="Download"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onTriggerDownload(wallpaper.src.original, wallpaper.alt || 'download');
+                        }}
+                    > 
+                        <Download size={20}/> 
+                    </button>  
+
+                    {/* SHARE BUTTON */}
+                    <button 
+                        className="wallpaper-btn"
+                        title="Share Asset" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenModal(wallpaper);
+                        }}
+                    >
+                        <Share size={18} />
+                    </button> 
+                </div>
+            </div>
+        </div>
+    );
+});
+
+WallpaperCard.displayName = "WallpaperCard";
+
+
+// === MAIN COMPONENT ===
 export default function ExplorePage() {
-    // === STATE MANAGEMENT ===
     const { user } = useAuth();
     const [wallpapers, setWallpapers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentQuery, setCurrentQuery] = useState('Abstract'); 
     
-    // We use a Set to keep track of which wallpapers the user has 'liked'.
-    // A Set is fast and efficient for checking existence (e.g., likedIds.has(id)).
     const [likedIds, setLikedIds] = useState(new Set());
     const [favoriteIdByWallpaper, setFavoriteIdByWallpaper] = useState({});
     const [showCollectionModal, setShowCollectionModal] = useState(false);
@@ -31,15 +112,10 @@ export default function ExplorePage() {
     const [newCollectionName, setNewCollectionName] = useState('');
     const [collectionsLoading, setCollectionsLoading] = useState(false);
 
-    // Hook from our custom ShareModalContext to globally trigger the share modal overlay
     const { openModal } = useShareModal();
-
     const imageFormat = useImageFormat();
 
-    /**
-     * 🌐 PEXELS API CALL
-     * Hits your Next.js internal backend API endpoint to securely fetch wallpaper arrays.
-     */
+    // Isolated Data Fetching Function
     const fetchWallpapers = async (queryToFetch) => {
         setLoading(true); 
         try {
@@ -48,17 +124,18 @@ export default function ExplorePage() {
             setWallpapers(data.photos || []);
         } catch(error) {
             console.error("Failed to load wallpapers:", error);
-            toast.error("Network communication failure fetching wall sources.");
+            toast.error("Network communication failure fetching wallpaper sources.");
         } finally {
             setLoading(false); 
         }
     };
 
-    // Load initial category feed on page render
+    // React clean-effect tracker sync
     useEffect(() => {
         fetchWallpapers(currentQuery);
     }, [currentQuery]); 
 
+    // Synchronize Profile Collection Data Lists
     useEffect(() => {
         if (!user) {
             loadLocalCollections();
@@ -84,6 +161,7 @@ export default function ExplorePage() {
         getCollections();
     }, [user]);
 
+    // Synchronize User Profile Bookmarks / Favorites Maps
     useEffect(() => {
         if (!user) {
             setLikedIds(new Set());
@@ -261,18 +339,12 @@ export default function ExplorePage() {
         }
     };
 
-    // === EVENT HANDLERS ===
-
-    // Triggered when a user completes a text search
     const handleSearch = (searchTerm) => {
         setCurrentQuery(searchTerm); 
-        fetchWallpapers(searchTerm); 
     };
 
-    // Triggered when a user clicks on any category chip
     const handleCategoryClick = (category) => {
         setCurrentQuery(category);
-        fetchWallpapers(category);
     };
 
     const toggleLike = async (id) => {
@@ -326,45 +398,29 @@ export default function ExplorePage() {
         }
     };
 
-    /**
-     * 📥 BYPASS LINK FORCED DOWNLOAD
-     * Standard links open images in a new browser tab. 
-     * This converts the image path to bytes (Blob) to force a native filesystem download save box.
-     */
     const triggerDownload = async (imgUrl, filename) => {
+        const toastId = toast.loading("Preparing high-res asset download...");
         try {
-            toast.loading("Preparing high-res asset download...");
-
-            // 1. Fetch raw picture data streams directly from server paths
             const response = await fetch(imgUrl);
-            
-            // 2. Convert incoming binary network packet streams into a raw file Blob object
             const blob = await response.blob();
-            
-            // 3. Create a unique, temporary virtual memory URL pointing to that Blob
             const blobUrl = window.URL.createObjectURL(blob);
             
-            // 4. Generate an in-memory virtual <a> HTML tag to simulate download targeting
             const link = document.createElement('a');
             link.href = blobUrl;
             
-            // Reformat filename space characters into filesystem dashes
             const cleanName = filename.replace(/\s+/g, '-').toLowerCase();
             link.download = `${cleanName}-puffywalls.jpg`;
             
-            // 5. Append node to DOM framework structure, click it programmatically, then wipe it
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             
-            // 6. Instantly free up system browser memory caches
             window.URL.revokeObjectURL(blobUrl);
-            
-            toast.dismiss();
+            toast.dismiss(toastId);
             toast.success("Download started! 🚀");
         } catch (err) {
             console.error("Download pipeline broke:", err);
-            toast.dismiss();
+            toast.dismiss(toastId);
             toast.error("Could not complete asset download.");
         }
     };
@@ -405,97 +461,29 @@ export default function ExplorePage() {
                         <div className="spinner"></div>
                         <p>Fetching beautiful wallpapers...</p>
                     </div>
+                ) : wallpapers.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '4rem 0', color: '#888' }}>
+                        <p>No wallpapers found for this query. Try another keyword!</p>
+                    </div>
                 ) : (
                     <div className="wallpaper-grid">
-                        {wallpapers.map((wallpaper) => {
-                            // Check if this specific wallpaper is currently liked
-                            const isLiked = likedIds.has(wallpaper.id);
-
-                            return (
-                                <div 
-                                    key={wallpaper.id} 
-                                    className="wallpaper-card"
-                                    // Clicking anywhere on the card opens the Share modal globally
-                                    onClick={() => openModal(wallpaper)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <img 
-                                        // Dynamic object keys select 'portrait', 'large', or 'large2x' depending on layout state
-                                        src={wallpaper.src[imageFormat] || wallpaper.src.large} 
-                                        alt={wallpaper.alt || 'Wallpaper'} 
-                                        className="wallpaper-image"
-                                        loading="lazy" // Native performance booster: only downloads images when scrolled into view
-                                    />
-                                    
-                                    {/* HOVER INTERFACES OVERLAY CARD CONTAINER */}
-                                    <div className="wallpaper-overlay">
-                                        <div className="wallpaper-info">
-                                            <h3>{wallpaper.alt || 'Untitled Artwork'}</h3>
-                                            <p className="photographer-name">📸 {wallpaper.photographer}</p>
-                                        </div>
-                                        <div className="wallpaper-actions">
-                                            {/* LIKE BUTTON */}
-                                            <button 
-                                                className={`wallpaper-btn ${isLiked ? 'liked' : ''}`} 
-                                                title="Like" 
-                                                onClick={(e) => {
-                                                    // Stop propagation to prevent the card click event (which opens the share modal) from firing
-                                                    e.stopPropagation();
-                                                    toggleLike(wallpaper.id);
-                                                }}
-                                            > 
-                                                <Heart 
-                                                    size={20} 
-                                                    // Fill the heart with red if liked, otherwise keep it transparent
-                                                    fill={isLiked ? "#ff4757" : "transparent"} 
-                                                    color={isLiked ? "#ff4757" : "currentColor"}
-                                                /> 
-                                            </button>
-                                            
-                                            {/* SAVE BUTTON */}
-                                            <button 
-                                                className="wallpaper-btn" 
-                                                title="Save"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openSaveModal(wallpaper, e);
-                                                }}
-                                            > 
-                                                <FolderPlus size={20}/> 
-                                            </button>
-                                            
-                                            {/* DOWNLOAD BUTTON */}
-                                            <button 
-                                                className="wallpaper-btn" 
-                                                title="Download"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    triggerDownload(wallpaper.src.original, wallpaper.alt || 'download');
-                                                }}
-                                            > 
-                                                <Download size={20}/> 
-                                            </button>  
-
-                                              {/* PUBLIC SYSTEM OVERLAY MODAL */}
-                                              <button 
-                                                  className="wallpaper-btn"
-                                                  title="Share Asset" 
-                                                  onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      openModal(wallpaper);
-                                                  }}
-                                                >
-                                                  <Share size={18} />
-                                              </button> 
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        {wallpapers.map((wallpaper) => (
+                            <WallpaperCard 
+                                key={wallpaper.id}
+                                wallpaper={wallpaper}
+                                isLiked={likedIds.has(wallpaper.id)}
+                                imageFormat={imageFormat}
+                                onOpenModal={openModal}
+                                onOpenSaveModal={openSaveModal}
+                                onToggleLike={toggleLike}
+                                onTriggerDownload={triggerDownload}
+                            />
+                        ))}
                     </div>
                 )}
             </div>
 
+            {/* COLLECTION MODAL CONTAINER */}
             {showCollectionModal && (
                 <div className="collection-modal-backdrop" onClick={closeSaveModal}>
                     <div className="collection-modal-card" onClick={(event) => event.stopPropagation()}>

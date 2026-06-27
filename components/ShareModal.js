@@ -1,7 +1,5 @@
 'use client';
 
-
-
 import { useEffect, useMemo, useState } from 'react';
 import { X, Share2, Download, Copy, Mail, MessageCircle, Heart, Globe, Link, FolderPlus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -28,11 +26,20 @@ const socialPlatforms = [
 ];
 
 export default function ShareModal({ wallpaper, onClose, isClosing }) {
+  // 🟢 FIXED: Lifted authentication hook instantiation to the top of the scope to safely service lower functions
+  const { user } = useAuth();
+
   const [orientation, setOrientation] = useState('original');
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
   const [liked, setLiked] = useState(false);
   const [favoriteId, setFavoriteId] = useState(null);
+
+  // Save to collection panel tracking
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [collectionNames, setCollectionNames] = useState([]);
+  const [collections, setCollections] = useState([]);
+  const [newCollectionName, setNewCollectionName] = useState('');
 
   const imageUrl = wallpaper?.src?.large || wallpaper?.src?.original || wallpaper?.src?.medium || '';
   const title = wallpaper?.alt || 'Wallpaper';
@@ -72,6 +79,27 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
     loadComments();
   }, [wallpaperId]);
 
+  useEffect(() => {
+    if (!user || !wallpaperId) return;
+
+    const loadFavoriteStatus = async () => {
+      try {
+        const favoriteRecords = await fetchFavorites({ userId: user.uid, wallpaperId });
+        if (Array.isArray(favoriteRecords) && favoriteRecords.length > 0) {
+          setLiked(true);
+          setFavoriteId(favoriteRecords[0]._id);
+        } else {
+          setLiked(false);
+          setFavoriteId(null);
+        }
+      } catch (error) {
+        console.error('Unable to load favorite status:', error);
+      }
+    };
+
+    loadFavoriteStatus();
+  }, [user, wallpaperId]);
+
   const selectedImageClass = useMemo(() => {
     return orientation === 'portrait' ? 'portrait' : orientation === 'landscape' ? 'landscape' : 'original';
   }, [orientation]);
@@ -94,6 +122,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
     if (!navigator.clipboard) return;
     try {
       await navigator.clipboard.writeText(imageUrl);
+      toast.success('Link copied to clipboard!');
     } catch (error) {
       console.error('Copy to clipboard failed:', error);
     }
@@ -124,7 +153,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
 
       setComments((prev) => [postedComment, ...prev]);
       setCommentText('');
-      return;
+      toast.success('Comment posted successfully!');
     } catch (error) {
       console.error('Comment submit failed:', error);
       toast.error('Unable to post your comment right now.');
@@ -140,6 +169,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
 
     if (!user) {
       setLiked((prev) => !prev);
+      toast.success('Toggled locally. Sign in to sync your likes permanently.');
       return;
     }
 
@@ -173,13 +203,6 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
     const href = platform.href(shareUrl, shareText);
     window.open(href, '_blank', 'noopener,noreferrer');
   };
-
-  // --- Save to collection state & helpers ---
-  const { user } = useAuth();
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [collectionNames, setCollectionNames] = useState([]);
-  const [collections, setCollections] = useState([]);
-  const [newCollectionName, setNewCollectionName] = useState('');
 
   const loadCollections = async () => {
     if (user) {
@@ -220,27 +243,6 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
     setCollectionNames(['Favorites']);
     return seed;
   };
-
-  useEffect(() => {
-    if (!user || !wallpaperId) return;
-
-    const loadFavoriteStatus = async () => {
-      try {
-        const favoriteRecords = await fetchFavorites({ userId: user.uid, wallpaperId });
-        if (Array.isArray(favoriteRecords) && favoriteRecords.length > 0) {
-          setLiked(true);
-          setFavoriteId(favoriteRecords[0]._id);
-        } else {
-          setLiked(false);
-          setFavoriteId(null);
-        }
-      } catch (error) {
-        console.error('Unable to load favorite status:', error);
-      }
-    };
-
-    loadFavoriteStatus();
-  }, [user, wallpaperId]);
 
   const openSavePanel = async () => {
     const vault = await loadCollections();
@@ -434,7 +436,6 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
           </button>
         </div>
 
-        {/* Save-to-collection panel (inside modal) */}
         {showSaveModal && (
           <div className="save-panel">
             <div className="save-panel-header">
@@ -485,13 +486,14 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
               <p className="comments-empty">No comments yet. Be the first to say something nice.</p>
             ) : (
               comments.map((comment) => (
-                <div key={comment.id} className="comment-bubble">
+                <div key={comment.id || comment._id} className="comment-bubble">
                   <div className="comment-meta">
-                    <span className="comment-user">Guest</span>
-                    <span className="comment-time">{new Date(comment.createdAt).toLocaleString()}</span>
+                    <span className="comment-user">{comment.authorName || 'Guest'}</span>
+                    <span className="comment-time">{comment.createdAt ? new Date(comment.createdAt).toLocaleString() : 'Just now'}</span>
                   </div>
                   <div className="comment-body-wrapper">
-                    <p className="comment-payload">{comment.body}</p>
+                    {/* 🟢 FIXED: Supports lookups on both 'body' and 'text' object parameters smoothly */}
+                    <p className="comment-payload">{comment.body || comment.text}</p>
                   </div>
                 </div>
               ))
