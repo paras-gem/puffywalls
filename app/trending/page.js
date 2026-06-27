@@ -5,7 +5,9 @@ import SearchBar from '../../components/SearchBar';
 import { Heart, Download, Plus, Flame, MessageCircle, Share } from 'lucide-react';
 import { useShareModal } from '../../lib/ShareModalContext';
 import { useImageFormat } from "@/hooks/useImageFormat";
+import { useAuth } from '@/lib/AuthContext';
 import { toast } from "sonner";
+import { fetchFavorites, postFavorite, deleteFavorite } from '@/lib/api';
 import './trending.css';
 
 // Premium trend-focused categories to display in the filter row
@@ -21,6 +23,8 @@ export default function Trending() {
     
     // Tracks active user interactions safely with a high-performance memory Set
     const [likedIds, setLikedIds] = useState(new Set());
+    const [favoriteIdByWallpaper, setFavoriteIdByWallpaper] = useState({});
+    const { user } = useAuth();
 
     // Context hooks for layout responsiveness and globally handled interactive elements
     const imageFormat = useImageFormat();
@@ -50,6 +54,36 @@ export default function Trending() {
         fetchTrendingFeed(currentQuery);
     }, []);
 
+    useEffect(() => {
+        if (!user) {
+            setLikedIds(new Set());
+            setFavoriteIdByWallpaper({});
+            return;
+        }
+
+        const loadFavorites = async () => {
+            try {
+                const favorites = await fetchFavorites({ userId: user.uid });
+                if (Array.isArray(favorites)) {
+                    const ids = new Set();
+                    const idMap = {};
+                    favorites.forEach((favorite) => {
+                        if (favorite.wallpaperId) {
+                            ids.add(favorite.wallpaperId);
+                            idMap[favorite.wallpaperId] = favorite._id;
+                        }
+                    });
+                    setLikedIds(ids);
+                    setFavoriteIdByWallpaper(idMap);
+                }
+            } catch (error) {
+                console.error('Failed to load favorites:', error);
+            }
+        };
+
+        loadFavorites();
+    }, [user]);
+
     // === INTERACTIVE EVENT PIPELINES ===
 
     // Re-routes custom search bar entry points into the asynchronous data loader
@@ -64,17 +98,58 @@ export default function Trending() {
         fetchTrendingFeed(category);
     };
 
-    // Tracks like actions locally using a clean toggle state
-    const toggleLike = (id) => {
-        setLikedIds(prev => {
-            const newLiked = new Set(prev);
-            if (newLiked.has(id)) {
-                newLiked.delete(id);
-            } else {
-                newLiked.add(id);
+    // Tracks like actions locally using a clean toggle state, with backend persistence for signed in users
+    const toggleLike = async (id) => {
+        if (!id) return;
+
+        if (!user) {
+            setLikedIds(prev => {
+                const newLiked = new Set(prev);
+                if (newLiked.has(id)) {
+                    newLiked.delete(id);
+                } else {
+                    newLiked.add(id);
+                }
+                return newLiked;
+            });
+            return;
+        }
+
+        if (likedIds.has(id)) {
+            const favoriteId = favoriteIdByWallpaper[id];
+            try {
+                await deleteFavorite({ favoriteId, userId: user.uid, wallpaperId: id });
+                setLikedIds(prev => {
+                    const newLiked = new Set(prev);
+                    newLiked.delete(id);
+                    return newLiked;
+                });
+                setFavoriteIdByWallpaper(prev => {
+                    const updated = { ...prev };
+                    delete updated[id];
+                    return updated;
+                });
+                toast.success('Removed from favorites.');
+            } catch (error) {
+                console.error('Failed to remove favorite:', error);
+                toast.error('Could not remove favorite.');
             }
-            return newLiked;
-        });
+            return;
+        }
+
+        try {
+            const favorite = await postFavorite({ userId: user.uid, wallpaperId: id, metadata: {} });
+            setLikedIds(prev => {
+                const newLiked = new Set(prev);
+                newLiked.add(id);
+                return newLiked;
+            });
+            setFavoriteIdByWallpaper(prev => ({ ...prev, [id]: favorite._id }));
+            toast.success('Added to favorites.');
+        } catch (error) {
+            console.error('Failed to favorite wallpaper:', error);
+            toast.error('Could not add to favorites.');
+        }
     };
 
     /**

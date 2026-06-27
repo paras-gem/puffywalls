@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { useImageFormat } from "@/hooks/useImageFormat";
 import { useShareModal } from "../../lib/ShareModalContext"; // Import our global modal context
+import { fetchUserCollections, createCollection, updateCollection, logEngagement, fetchFavorites, postFavorite, deleteFavorite } from "@/lib/api";
 import './ExplorePage.css'; 
 
 // Pre-defined wallpaper collections for the top filter pill-row
@@ -22,10 +23,13 @@ export default function ExplorePage() {
     // We use a Set to keep track of which wallpapers the user has 'liked'.
     // A Set is fast and efficient for checking existence (e.g., likedIds.has(id)).
     const [likedIds, setLikedIds] = useState(new Set());
+    const [favoriteIdByWallpaper, setFavoriteIdByWallpaper] = useState({});
     const [showCollectionModal, setShowCollectionModal] = useState(false);
     const [selectedWallpaperForSave, setSelectedWallpaperForSave] = useState(null);
+    const [collections, setCollections] = useState([]);
     const [collectionNames, setCollectionNames] = useState([]);
     const [newCollectionName, setNewCollectionName] = useState('');
+    const [collectionsLoading, setCollectionsLoading] = useState(false);
 
     // Hook from our custom ShareModalContext to globally trigger the share modal overlay
     const { openModal } = useShareModal();
@@ -55,7 +59,62 @@ export default function ExplorePage() {
         fetchWallpapers(currentQuery);
     }, [currentQuery]); 
 
-    const loadCollections = () => {
+    useEffect(() => {
+        if (!user) {
+            loadLocalCollections();
+            return;
+        }
+
+        const getCollections = async () => {
+            setCollectionsLoading(true);
+            try {
+                const data = await fetchUserCollections(user.uid);
+                if (Array.isArray(data)) {
+                    setCollections(data);
+                    setCollectionNames(data.map((collection) => collection.name));
+                }
+            } catch (error) {
+                console.error('Failed to load collections:', error);
+                toast.error('Unable to load your collections from the server.');
+            } finally {
+                setCollectionsLoading(false);
+            }
+        };
+
+        getCollections();
+    }, [user]);
+
+    useEffect(() => {
+        if (!user) {
+            setLikedIds(new Set());
+            setFavoriteIdByWallpaper({});
+            return;
+        }
+
+        const loadFavorites = async () => {
+            try {
+                const favorites = await fetchFavorites({ userId: user.uid });
+                if (Array.isArray(favorites)) {
+                    const ids = new Set();
+                    const idMap = {};
+                    favorites.forEach((favorite) => {
+                        if (favorite.wallpaperId) {
+                            ids.add(favorite.wallpaperId);
+                            idMap[favorite.wallpaperId] = favorite._id;
+                        }
+                    });
+                    setLikedIds(ids);
+                    setFavoriteIdByWallpaper(idMap);
+                }
+            } catch (error) {
+                console.error('Failed to load favorites:', error);
+            }
+        };
+
+        loadFavorites();
+    }, [user]);
+
+    const loadLocalCollections = () => {
         try {
             const saved = window.localStorage.getItem('user_collections');
             if (saved) {
@@ -82,8 +141,14 @@ export default function ExplorePage() {
         event.stopPropagation();
         setSelectedWallpaperForSave(wallpaper);
         setShowCollectionModal(true);
-        const currentCollections = loadCollections();
-        setCollectionNames(Object.keys(currentCollections));
+
+        if (!user) {
+            const currentCollections = loadLocalCollections();
+            setCollectionNames(Object.keys(currentCollections));
+            return;
+        }
+
+        setCollectionNames(collections.map((collection) => collection.name));
     };
 
     const closeSaveModal = () => {
@@ -92,39 +157,108 @@ export default function ExplorePage() {
         setNewCollectionName('');
     };
 
-    const saveWallpaperToCollection = (collectionName) => {
+    const saveWallpaperToCollection = async (collectionName) => {
         if (!selectedWallpaperForSave) return;
 
-        const currentCollections = loadCollections();
-        const collection = currentCollections[collectionName] || [];
-        if (collection.some((item) => item.id === selectedWallpaperForSave.id)) {
+        if (!user) {
+            const currentCollections = loadLocalCollections();
+            const collection = currentCollections[collectionName] || [];
+            if (collection.some((item) => item.id === selectedWallpaperForSave.id)) {
+                toast.error(`Already saved to ${collectionName}`);
+                return;
+            }
+
+            currentCollections[collectionName] = [...collection, selectedWallpaperForSave];
+            window.localStorage.setItem('user_collections', JSON.stringify(currentCollections));
+            toast.success(`Saved to ${collectionName}`);
+            closeSaveModal();
+            return;
+        }
+
+        const targetCollection = collections.find((collection) => collection.name === collectionName);
+        if (!targetCollection) {
+            toast.error('Collection could not be found.');
+            return;
+        }
+
+        const existing = targetCollection.wallpapers?.some((item) => item.wallpaperId === selectedWallpaperForSave.id);
+        if (existing) {
             toast.error(`Already saved to ${collectionName}`);
             return;
         }
 
-        currentCollections[collectionName] = [...collection, selectedWallpaperForSave];
-        window.localStorage.setItem('user_collections', JSON.stringify(currentCollections));
-        toast.success(`Saved to ${collectionName}`);
-        closeSaveModal();
+        const updatedWallpapers = [
+            ...(targetCollection.wallpapers || []),
+            {
+                wallpaperId: selectedWallpaperForSave.id,
+                addedAt: new Date().toISOString(),
+                metadata: selectedWallpaperForSave,
+            },
+        ];
+
+        try {
+            await updateCollection(targetCollection._id, { wallpapers: updatedWallpapers });
+            logEngagement({ userId: user.uid, eventType: 'save_wallpaper', metadata: { wallpaperId: selectedWallpaperForSave.id, collectionName } });
+            const refreshed = await fetchUserCollections(user.uid);
+            setCollections(refreshed);
+            setCollectionNames(refreshed.map((collection) => collection.name));
+            toast.success(`Saved to ${collectionName}`);
+            closeSaveModal();
+        } catch (error) {
+            console.error('Save failed:', error);
+            toast.error('Could not save wallpaper to your collection.');
+        }
     };
 
-    const handleCreateCollectionAndSave = (event) => {
+    const handleCreateCollectionAndSave = async (event) => {
         event.preventDefault();
         const trimmed = newCollectionName.trim();
         if (!trimmed || !selectedWallpaperForSave) return;
 
-        const currentCollections = loadCollections();
-        if (currentCollections[trimmed]) {
+        if (!user) {
+            const currentCollections = loadLocalCollections();
+            if (currentCollections[trimmed]) {
+                toast.error('A collection with this name already exists.');
+                return;
+            }
+
+            currentCollections[trimmed] = [selectedWallpaperForSave];
+            window.localStorage.setItem('user_collections', JSON.stringify(currentCollections));
+            setNewCollectionName('');
+            setCollectionNames(Object.keys(currentCollections));
+            toast.success(`Created ${trimmed} and saved wallpaper.`);
+            closeSaveModal();
+            return;
+        }
+
+        if (collections.some((collection) => collection.name === trimmed)) {
             toast.error('A collection with this name already exists.');
             return;
         }
 
-        currentCollections[trimmed] = [selectedWallpaperForSave];
-        window.localStorage.setItem('user_collections', JSON.stringify(currentCollections));
-        setNewCollectionName('');
-        setCollectionNames(Object.keys(currentCollections));
-        toast.success(`Created ${trimmed} and saved wallpaper.`);
-        closeSaveModal();
+        try {
+            const created = await createCollection({
+                ownerId: user.uid,
+                name: trimmed,
+                wallpapers: [
+                    {
+                        wallpaperId: selectedWallpaperForSave.id,
+                        addedAt: new Date().toISOString(),
+                        metadata: selectedWallpaperForSave,
+                    },
+                ],
+            });
+
+            logEngagement({ userId: user.uid, eventType: 'create_collection_and_save', metadata: { wallpaperId: selectedWallpaperForSave.id, collectionName: trimmed } });
+            setCollections((prev) => [created, ...prev]);
+            setCollectionNames((prev) => [created.name, ...prev]);
+            setNewCollectionName('');
+            toast.success(`Created ${trimmed} and saved wallpaper.`);
+            closeSaveModal();
+        } catch (error) {
+            console.error('Create collection failed:', error);
+            toast.error('Could not create collection at this time.');
+        }
     };
 
     // === EVENT HANDLERS ===
@@ -141,18 +275,55 @@ export default function ExplorePage() {
         fetchWallpapers(category);
     };
 
-    // Toggles the 'liked' state of a wallpaper by its ID.
-    // If it's already liked, we remove it from the Set; otherwise, we add it.
-    const toggleLike = (id) => {
-        setLikedIds(prev => {
-            const newLiked = new Set(prev);
-            if (newLiked.has(id)) {
-                newLiked.delete(id);
-            } else {
-                newLiked.add(id);
+    const toggleLike = async (id) => {
+        if (!id) return;
+
+        if (!user) {
+            setLikedIds(prev => {
+                const newLiked = new Set(prev);
+                if (newLiked.has(id)) {
+                    newLiked.delete(id);
+                } else {
+                    newLiked.add(id);
+                }
+                return newLiked;
+            });
+            return;
+        }
+
+        if (likedIds.has(id)) {
+            const favoriteId = favoriteIdByWallpaper[id];
+            try {
+                await deleteFavorite({ favoriteId, userId: user.uid, wallpaperId: id });
+                setLikedIds(prev => {
+                    const newLiked = new Set(prev);
+                    newLiked.delete(id);
+                    return newLiked;
+                });
+                setFavoriteIdByWallpaper(prev => {
+                    const updated = { ...prev };
+                    delete updated[id];
+                    return updated;
+                });
+                logEngagement({ userId: user.uid, eventType: 'unfavorite_wallpaper', metadata: { wallpaperId: id } });
+                toast.success('Removed from favorites.');
+            } catch (error) {
+                console.error('Failed to remove favorite:', error);
+                toast.error('Could not remove favorite.');
             }
-            return newLiked;
-        });
+            return;
+        }
+
+        try {
+            const favorite = await postFavorite({ userId: user.uid, wallpaperId: id, metadata: {} });
+            setLikedIds(prev => new Set(prev).add(id));
+            setFavoriteIdByWallpaper(prev => ({ ...prev, [id]: favorite._id }));
+            logEngagement({ userId: user.uid, eventType: 'favorite_wallpaper', metadata: { wallpaperId: id } });
+            toast.success('Added to favorites.');
+        } catch (error) {
+            console.error('Failed to favorite wallpaper:', error);
+            toast.error('Could not add to favorites.');
+        }
     };
 
     /**

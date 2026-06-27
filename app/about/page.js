@@ -1,38 +1,43 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/lib/AuthContext';
+import { postFeedback, logEngagement } from '@/lib/api';
 import './about.css';
 
 export default function About() {
+    const { user } = useAuth();
     const [feedbackType, setFeedbackType] = useState('feedback');
     const [message, setMessage] = useState('');
     const [email, setEmail] = useState('');
     const [submitted, setSubmitted] = useState(false);
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         const trimmedMessage = message.trim();
         if (!trimmedMessage) return;
 
-        const entry = {
-            id: Date.now(),
-            type: feedbackType,
-            message: trimmedMessage,
-            email: email.trim(),
-            createdAt: new Date().toISOString(),
-        };
-
         try {
-            const existing = JSON.parse(window.localStorage.getItem('puffywalls_feedback') || '[]');
-            window.localStorage.setItem('puffywalls_feedback', JSON.stringify([entry, ...existing]));
+            await postFeedback({
+                userId: user?.uid || null,
+                email: email.trim(),
+                category: feedbackType,
+                message: trimmedMessage,
+            });
+
+            logEngagement({
+                userId: user?.uid || 'anonymous',
+                eventType: feedbackType === 'feature' ? 'feature_request' : 'feedback_submission',
+                metadata: { category: feedbackType, email: email.trim() },
+            });
+
+            setSubmitted(true);
+            setMessage('');
+            setEmail('');
+            setFeedbackType('feedback');
         } catch (error) {
             console.error('Unable to save feedback', error);
         }
-
-        setSubmitted(true);
-        setMessage('');
-        setEmail('');
-        setFeedbackType('feedback');
     };
 
     return (

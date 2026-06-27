@@ -5,6 +5,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { X, Share2, Download, Copy, Mail, MessageCircle, Heart, Globe, Link, FolderPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/AuthContext';
+import { fetchComments, postComment, fetchFavorites, postFavorite, deleteFavorite, fetchUserCollections, createCollection, updateCollection, logEngagement } from '@/lib/api';
 import './ShareModal.css';
 
 const socialPlatforms = [
@@ -30,11 +32,12 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
   const [liked, setLiked] = useState(false);
+  const [favoriteId, setFavoriteId] = useState(null);
 
   const imageUrl = wallpaper?.src?.large || wallpaper?.src?.original || wallpaper?.src?.medium || '';
   const title = wallpaper?.alt || 'Wallpaper';
   const photographer = wallpaper?.photographer || 'Unknown Artist';
-  const wallpaperId = wallpaper?.id || 'unknown-wallpaper';
+  const wallpaperId = wallpaper?.id;
 
   useEffect(() => {
     const handleEscape = (event) => {
@@ -54,12 +57,19 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
 
   useEffect(() => {
     if (!wallpaperId) return;
-    try {
-      const rawComments = window.localStorage.getItem(`puffywalls_comments_${wallpaperId}`) || '[]';
-      setComments(JSON.parse(rawComments));
-    } catch (error) {
-      setComments([]);
-    }
+
+    const loadComments = async () => {
+      try {
+        const serverComments = await fetchComments(wallpaperId);
+        if (Array.isArray(serverComments)) {
+          setComments(serverComments);
+        }
+      } catch (error) {
+        console.warn('Unable to load comments from server.', error);
+      }
+    };
+
+    loadComments();
   }, [wallpaperId]);
 
   const selectedImageClass = useMemo(() => {
@@ -99,31 +109,62 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
     document.body.removeChild(link);
   };
 
-  const handleCommentSubmit = (event) => {
+  const handleCommentSubmit = async (event) => {
     event.preventDefault();
     const trimmedComment = commentText.trim();
     if (!trimmedComment) return;
 
-    const nextComments = [
-      {
-        id: Date.now(),
-        body: trimmedComment,
-        createdAt: new Date().toISOString(),
-      },
-      ...comments,
-    ];
+    try {
+      const postedComment = await postComment({
+        wallpaperId,
+        userId: user?.uid || null,
+        authorName: user?.displayName || 'Guest',
+        text: trimmedComment,
+      });
 
-    setComments(nextComments);
-    window.localStorage.setItem(`puffywalls_comments_${wallpaperId}`, JSON.stringify(nextComments));
-    setCommentText('');
+      setComments((prev) => [postedComment, ...prev]);
+      setCommentText('');
+      return;
+    } catch (error) {
+      console.error('Comment submit failed:', error);
+      toast.error('Unable to post your comment right now.');
+    }
   };
 
   const handleClearComments = () => {
     setCommentText('');
   };
 
-  const toggleLike = () => {
-    setLiked((prev) => !prev);
+  const toggleLike = async () => {
+    if (!wallpaperId) return;
+
+    if (!user) {
+      setLiked((prev) => !prev);
+      return;
+    }
+
+    if (liked && favoriteId) {
+      try {
+        await deleteFavorite({ favoriteId, userId: user.uid, wallpaperId });
+        setLiked(false);
+        setFavoriteId(null);
+        toast.success('Removed from favorites.');
+      } catch (error) {
+        console.error('Failed to remove favorite:', error);
+        toast.error('Could not remove favorite.');
+      }
+      return;
+    }
+
+    try {
+      const favorite = await postFavorite({ userId: user.uid, wallpaperId, metadata: {} });
+      setLiked(true);
+      setFavoriteId(favorite._id);
+      toast.success('Added to favorites.');
+    } catch (error) {
+      console.error('Failed to favorite wallpaper:', error);
+      toast.error('Could not add to favorites.');
+    }
   };
 
   const openSocialShare = (platform) => {
@@ -134,25 +175,76 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
   };
 
   // --- Save to collection state & helpers ---
+  const { user } = useAuth();
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [collectionNames, setCollectionNames] = useState([]);
+  const [collections, setCollections] = useState([]);
   const [newCollectionName, setNewCollectionName] = useState('');
 
-  const loadCollections = () => {
+  const loadCollections = async () => {
+    if (user) {
+      try {
+        const data = await fetchUserCollections(user.uid);
+        if (Array.isArray(data)) {
+          setCollections(data);
+          setCollectionNames(data.map((collection) => collection.name));
+          return data;
+        }
+      } catch (error) {
+        console.error('Error loading collections from server', error);
+        toast.error('Unable to load your collections.');
+      }
+    }
+
     try {
       const raw = window.localStorage.getItem('user_collections');
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const arrayCollections = Object.entries(parsed).map(([name, wallpapers]) => ({
+          _id: name,
+          name,
+          wallpapers,
+          isLocal: true,
+        }));
+        setCollections(arrayCollections);
+        setCollectionNames(arrayCollections.map((collection) => collection.name));
+        return arrayCollections;
+      }
     } catch (err) {
       console.error('Error reading collections', err);
     }
-    const seed = { Favorites: [] };
-    window.localStorage.setItem('user_collections', JSON.stringify(seed));
+
+    const seed = [{ _id: 'Favorites', name: 'Favorites', wallpapers: [], isLocal: true }];
+    window.localStorage.setItem('user_collections', JSON.stringify({ Favorites: [] }));
+    setCollections(seed);
+    setCollectionNames(['Favorites']);
     return seed;
   };
 
-  const openSavePanel = () => {
-    const vault = loadCollections();
-    setCollectionNames(Object.keys(vault));
+  useEffect(() => {
+    if (!user || !wallpaperId) return;
+
+    const loadFavoriteStatus = async () => {
+      try {
+        const favoriteRecords = await fetchFavorites({ userId: user.uid, wallpaperId });
+        if (Array.isArray(favoriteRecords) && favoriteRecords.length > 0) {
+          setLiked(true);
+          setFavoriteId(favoriteRecords[0]._id);
+        } else {
+          setLiked(false);
+          setFavoriteId(null);
+        }
+      } catch (error) {
+        console.error('Unable to load favorite status:', error);
+      }
+    };
+
+    loadFavoriteStatus();
+  }, [user, wallpaperId]);
+
+  const openSavePanel = async () => {
+    const vault = await loadCollections();
+    setCollectionNames(vault.map((collection) => collection.name));
     setShowSaveModal(true);
   };
 
@@ -161,32 +253,103 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
     setNewCollectionName('');
   };
 
-  const saveToCollection = (name) => {
+  const saveToCollection = async (name) => {
     if (!wallpaper) return;
-    try {
-      const vault = loadCollections();
-      const coll = vault[name] || [];
-      if (coll.some((it) => it.id === wallpaper.id)) {
-        toast.error(`Already saved to ${name}`);
-        closeSavePanel();
-        return;
+
+    const currentCollections = collections.length ? collections : await loadCollections();
+    const targetCollection = currentCollections.find((collection) => collection.name === name);
+
+    if (!targetCollection) {
+      toast.error('Collection not found');
+      closeSavePanel();
+      return;
+    }
+
+    const alreadySaved = targetCollection.wallpapers?.some((item) => item.wallpaperId === wallpaper.id || item.id === wallpaper.id);
+    if (alreadySaved) {
+      toast.error(`Already saved to ${name}`);
+      closeSavePanel();
+      return;
+    }
+
+    if (user && !targetCollection.isLocal) {
+      try {
+        const updatedWallpapers = [
+          ...(targetCollection.wallpapers || []),
+          {
+            wallpaperId: wallpaper.id,
+            addedAt: new Date().toISOString(),
+            metadata: wallpaper,
+          },
+        ];
+        await updateCollection(targetCollection._id, { wallpapers: updatedWallpapers });
+        logEngagement({ userId: user.uid, eventType: 'save_wallpaper', metadata: { wallpaperId: wallpaper.id, collectionName: name } });
+        const refreshed = await fetchUserCollections(user.uid);
+        setCollections(refreshed);
+        setCollectionNames(refreshed.map((collection) => collection.name));
+        toast.success(`Saved to ${name}`);
+      } catch (err) {
+        console.error('Save failed', err);
+        toast.error('Could not save wallpaper');
       }
+      closeSavePanel();
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem('user_collections');
+      const vault = raw ? JSON.parse(raw) : {};
+      const coll = vault[name] || [];
       vault[name] = [...coll, wallpaper];
       window.localStorage.setItem('user_collections', JSON.stringify(vault));
       toast.success(`Saved to ${name}`);
-      closeSavePanel();
     } catch (err) {
       console.error('Save failed', err);
       toast.error('Could not save wallpaper');
     }
+
+    closeSavePanel();
   };
 
-  const handleCreateAndSave = (e) => {
+  const handleCreateAndSave = async (e) => {
     e.preventDefault();
     const trimmed = newCollectionName.trim();
     if (!trimmed || !wallpaper) return;
+
+    if (collections.some((collection) => collection.name === trimmed)) {
+      toast.error('A collection with this name already exists.');
+      return;
+    }
+
+    if (user) {
+      try {
+        const created = await createCollection({
+          ownerId: user.uid,
+          name: trimmed,
+          wallpapers: [
+            {
+              wallpaperId: wallpaper.id,
+              addedAt: new Date().toISOString(),
+              metadata: wallpaper,
+            },
+          ],
+        });
+        logEngagement({ userId: user.uid, eventType: 'create_collection_and_save', metadata: { wallpaperId: wallpaper.id, collectionName: trimmed } });
+        setCollections((prev) => [created, ...prev]);
+        setCollectionNames((prev) => [created.name, ...prev]);
+        setNewCollectionName('');
+        setShowSaveModal(false);
+        toast.success(`Created ${trimmed} and saved wallpaper.`);
+      } catch (err) {
+        console.error('Create collection failed', err);
+        toast.error('Could not create collection');
+      }
+      return;
+    }
+
     try {
-      const vault = loadCollections();
+      const raw = window.localStorage.getItem('user_collections');
+      const vault = raw ? JSON.parse(raw) : {};
       if (vault[trimmed]) {
         toast.error('A collection with this name already exists.');
         return;

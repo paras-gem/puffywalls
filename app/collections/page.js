@@ -1,15 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Plus, ImageIcon, Trash2, ArrowLeft, Download, Share, FolderHeart, Edit3, Search, Image as ImageIconSec, FolderPlus } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 import { useShareModal } from '../../lib/ShareModalContext';
 import { useImageFormat } from "@/hooks/useImageFormat";
 import { toast } from "sonner";
+import { fetchUserCollections, createCollection, updateCollection, deleteCollection, logEngagement } from '@/lib/api';
 import './collections.css';
 
 export default function Collections() {
     // === STATE MANAGEMENT ===
+    const { user } = useAuth();
     const [collections, setCollections] = useState({});
+    const [collectionMeta, setCollectionMeta] = useState({});
     const [loading, setLoading] = useState(true);
     const [selectedFolder, setSelectedFolder] = useState(null);
     const [bgImage, setBgImage] = useState('');
@@ -34,30 +38,86 @@ export default function Collections() {
     /**
      * 📥 INTEGRATED FILE RECOVERY DECK
      */
-    const loadUserVaults = () => {
+    const loadLocalCollections = () => {
         setLoading(true);
         try {
             const vaultPayload = localStorage.getItem('user_collections');
             if (vaultPayload) {
                 const parsedData = JSON.parse(vaultPayload);
                 setCollections(parsedData);
+                setCollectionMeta({});
                 extractDynamicBackdrop(parsedData);
-            } else {
-                const seedData = {
-                    "Favorites": [],
-                    "Aesthetic Themes": [],
-                    "Neon Horizon Setup": []
-                };
-                localStorage.setItem('user_collections', JSON.stringify(seedData));
-                setCollections(seedData);
+                return parsedData;
             }
+
+            const seedData = {
+                "Favorites": [],
+                "Aesthetic Themes": [],
+                "Neon Horizon Setup": []
+            };
+            localStorage.setItem('user_collections', JSON.stringify(seedData));
+            setCollections(seedData);
+            setCollectionMeta({});
+            return seedData;
         } catch (error) {
             console.error("Critical error parsing internal collections context:", error);
             toast.error("Unable to access local client wallpaper storage vault.");
+            return {};
         } finally {
             setLoading(false);
         }
     };
+
+    const loadRemoteCollections = async () => {
+        setLoading(true);
+        try {
+            const remoteCollections = await fetchUserCollections(user.uid);
+            if (Array.isArray(remoteCollections)) {
+                const collectionObject = {};
+                const meta = {};
+                remoteCollections.forEach((col) => {
+                    const wallpapers = (col.wallpapers || []).map((item) => item.metadata || {
+                        id: item.wallpaperId,
+                        wallpaperId: item.wallpaperId,
+                        src: {},
+                    });
+                    collectionObject[col.name] = wallpapers;
+                    meta[col.name] = col;
+                });
+                setCollections(collectionObject);
+                setCollectionMeta(meta);
+                extractDynamicBackdrop(collectionObject);
+                return collectionObject;
+            }
+        } catch (error) {
+            console.error('Unable to load remote collections:', error);
+            toast.error('Unable to load your saved collections from the database.');
+        } finally {
+            setLoading(false);
+        }
+        return {};
+    };
+
+    const reloadCollections = async () => {
+        if (user) {
+            return loadRemoteCollections();
+        }
+        return loadLocalCollections();
+    };
+
+    useEffect(() => {
+        reloadCollections();
+    }, [user]);
+
+    useEffect(() => {
+        const handleStorage = () => {
+            if (!user) {
+                loadLocalCollections();
+            }
+        };
+        window.addEventListener('storage', handleStorage);
+        return () => window.removeEventListener('storage', handleStorage);
+    }, [user]);
 
     /**
      * 🌌 DYNAMIC BACKDROP EXTRACTOR
@@ -77,12 +137,6 @@ export default function Collections() {
             }
         }
     };
-
-    useEffect(() => {
-        loadUserVaults();
-        window.addEventListener('storage', loadUserVaults);
-        return () => window.removeEventListener('storage', loadUserVaults);
-    }, []);
 
     // Close any open move popover when clicking outside
     useEffect(() => {
@@ -114,13 +168,31 @@ export default function Collections() {
 
     // === MUTATION CONTROLS ===
 
-    const createCollectionSubmit = (e) => {
+    const createCollectionSubmit = async (e) => {
         e.preventDefault();
         const trimmedName = newFolderName.trim();
         
         if (!trimmedName) return;
         if (collections[trimmedName]) {
             return toast.error("A directory matching this structural name already exists.");
+        }
+
+        if (user) {
+            try {
+                await createCollection({
+                    ownerId: user.uid,
+                    name: trimmedName,
+                    wallpapers: [],
+                });
+                await reloadCollections();
+                setNewFolderName('');
+                setShowCreateModal(false);
+                toast.success(`Folder "${trimmedName}" created successfully.`);
+            } catch (error) {
+                console.error('Create collection failed:', error);
+                toast.error('Could not create a new collection folder.');
+            }
+            return;
         }
 
         const updatedVaults = { ...collections, [trimmedName]: [] };
@@ -139,7 +211,7 @@ export default function Collections() {
         setShowManageModal(true);
     };
 
-    const handleRenameFolder = (e) => {
+    const handleRenameFolder = async (e) => {
         e.preventDefault();
         const trimmedNewName = renameValue.trim();
 
@@ -150,6 +222,23 @@ export default function Collections() {
 
         if (collections[trimmedNewName]) {
             return toast.error("A folder named inside this directory already exists.");
+        }
+
+        if (user && collectionMeta[folderToManage]) {
+            try {
+                const collection = collectionMeta[folderToManage];
+                await updateCollection(collection._id, { name: trimmedNewName });
+                await reloadCollections();
+                setShowManageModal(false);
+                if (selectedFolder === folderToManage) {
+                    setSelectedFolder(trimmedNewName);
+                }
+                toast.success(`Renamed directory map to "${trimmedNewName}"`);
+                return;
+            } catch (error) {
+                console.error('Rename failed:', error);
+                toast.error('Could not rename the collection.');
+            }
         }
 
         const updatedVaults = { ...collections };
@@ -167,28 +256,62 @@ export default function Collections() {
         }
     };
 
-    const purgeCollectionFolder = (folderKey) => {
-        if (window.confirm(`Are you sure you want to permanently delete "${folderKey}" and remove its contents?`)) {
-            const updatedVaults = { ...collections };
-            delete updatedVaults[folderKey];
-            
-            setCollections(updatedVaults);
-            localStorage.setItem('user_collections', JSON.stringify(updatedVaults));
-            extractDynamicBackdrop(updatedVaults);
-            toast.success(`"${folderKey}" removed safely.`);
-            setShowManageModal(false);
-            
-            if (selectedFolder === folderKey) {
-                setSelectedFolder(null);
+    const purgeCollectionFolder = async (folderKey) => {
+        if (!window.confirm(`Are you sure you want to permanently delete "${folderKey}" and remove its contents?`)) {
+            return;
+        }
+
+        if (user && collectionMeta[folderKey]) {
+            try {
+                await deleteCollection(collectionMeta[folderKey]._id);
+                await reloadCollections();
+                setShowManageModal(false);
+                if (selectedFolder === folderKey) {
+                    setSelectedFolder(null);
+                }
+                toast.success(`"${folderKey}" removed safely.`);
+                return;
+            } catch (error) {
+                console.error('Delete collection failed:', error);
+                toast.error('Could not delete the collection.');
+                return;
             }
+        }
+
+        const updatedVaults = { ...collections };
+        delete updatedVaults[folderKey];
+        
+        setCollections(updatedVaults);
+        localStorage.setItem('user_collections', JSON.stringify(updatedVaults));
+        extractDynamicBackdrop(updatedVaults);
+        toast.success(`"${folderKey}" removed safely.`);
+        setShowManageModal(false);
+        
+        if (selectedFolder === folderKey) {
+            setSelectedFolder(null);
         }
     };
 
-    const extractItemFromFolder = (photoId, event) => {
+    const extractItemFromFolder = async (photoId, event) => {
         event.stopPropagation();
         const currentTargetFiles = collections[selectedFolder] || [];
-        const filteredPayload = currentTargetFiles.filter(item => item.id !== photoId);
-        
+        const filteredPayload = currentTargetFiles.filter(item => item.id !== photoId && item.wallpaperId !== photoId);
+
+        if (user && collectionMeta[selectedFolder]) {
+            try {
+                const collection = collectionMeta[selectedFolder];
+                const remoteWallpapers = (collection.wallpapers || []).filter(item => item.wallpaperId !== photoId);
+                await updateCollection(collection._id, { wallpapers: remoteWallpapers });
+                await reloadCollections();
+                toast.success("Wallpaper removed from this collection folder.");
+                return;
+            } catch (error) {
+                console.error('Remove wallpaper failed:', error);
+                toast.error('Could not remove wallpaper from the collection.');
+                return;
+            }
+        }
+
         const updatedVaults = { ...collections, [selectedFolder]: filteredPayload };
         setCollections(updatedVaults);
         localStorage.setItem('user_collections', JSON.stringify(updatedVaults));
@@ -464,15 +587,37 @@ export default function Collections() {
                                                             </button>
                                                             <button
                                                                 className="btn-modal-confirm"
-                                                                onClick={() => {
+                                                                onClick={async () => {
                                                                     if (!moveTarget) return toast.error('Select a target folder first.');
                                                                     const from = selectedFolder;
                                                                     const to = moveTarget;
                                                                     if (from === to) return toast.error('Already in selected folder.');
                                                                     const items = collections[from] || [];
-                                                                    const moving = items.find(i => i.id === photo.id);
+                                                                    const moving = items.find(i => i.id === photo.id || i.wallpaperId === photo.id);
                                                                     if (!moving) return toast.error('Item not found.');
-                                                                    const updatedFrom = items.filter(i => i.id !== photo.id);
+
+                                                                    if (user && collectionMeta[from] && collectionMeta[to]) {
+                                                                        try {
+                                                                            const sourceCollection = collectionMeta[from];
+                                                                            const targetCollection = collectionMeta[to];
+                                                                            const sourceItems = (sourceCollection.wallpapers || []).filter(item => item.wallpaperId !== photo.id);
+                                                                            const movedItem = sourceCollection.wallpapers.find(item => item.wallpaperId === photo.id);
+                                                                            const destinationItems = [...(targetCollection.wallpapers || []), movedItem || { wallpaperId: photo.id, metadata: photo }];
+                                                                            await updateCollection(sourceCollection._id, { wallpapers: sourceItems });
+                                                                            await updateCollection(targetCollection._id, { wallpapers: destinationItems });
+                                                                            await reloadCollections();
+                                                                            setMovePanelFor(null);
+                                                                            setMoveTarget('');
+                                                                            toast.success(`Moved to ${to}`);
+                                                                            return;
+                                                                        } catch (error) {
+                                                                            console.error('Move wallpaper failed:', error);
+                                                                            toast.error('Could not move the wallpaper between collections.');
+                                                                            return;
+                                                                        }
+                                                                    }
+
+                                                                    const updatedFrom = items.filter(i => i.id !== photo.id && i.wallpaperId !== photo.id);
                                                                     const updatedVaults = { ...collections, [from]: updatedFrom, [to]: [...(collections[to]||[]), moving] };
                                                                     setCollections(updatedVaults);
                                                                     localStorage.setItem('user_collections', JSON.stringify(updatedVaults));
