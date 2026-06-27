@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState, memo } from "react";
+import { useEffect, useState, memo, useCallback } from "react";
 import Image from "next/image";
 import SearchBar from "../../components/SearchBar"; 
 import { Heart, Download, FolderPlus, Share } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext"; 
 import { toast } from "sonner";
 import { useImageFormat } from "@/hooks/useImageFormat";
-import { useShareModal } from "../../shareModalContext"; // Adjusted path to standard conventions
+import { useShareModal } from "@/lib/ShareModalContext"; 
 import { fetchUserCollections, createCollection, updateCollection, logEngagement, fetchFavorites, postFavorite, deleteFavorite } from "@/lib/api";
 import './ExplorePage.css'; 
 
@@ -115,8 +115,32 @@ export default function ExplorePage() {
     const { openModal } = useShareModal();
     const imageFormat = useImageFormat();
 
+    // Move declaration before use
+    const loadLocalCollections = useCallback(() => {
+        try {
+            const saved = window.localStorage.getItem('user_collections');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                setCollectionNames(Object.keys(parsed));
+                return parsed;
+            }
+        } catch (error) {
+            console.error('Fetch collections failed', error);
+        }
+
+        const seedData = {
+            Favorites: [],
+            'Aesthetic Themes': [],
+            'Neon Horizon Setup': [],
+        };
+
+        window.localStorage.setItem('user_collections', JSON.stringify(seedData));
+        setCollectionNames(Object.keys(seedData));
+        return seedData;
+    }, []);
+
     // Isolated Data Fetching Function
-    const fetchWallpapers = async (queryToFetch) => {
+    const fetchWallpapers = useCallback(async (queryToFetch) => {
         setLoading(true); 
         try {
             const response = await fetch(`/api/wallpapers?query=${queryToFetch}&per_page=30`);
@@ -128,17 +152,19 @@ export default function ExplorePage() {
         } finally {
             setLoading(false); 
         }
-    };
+    }, []);
 
     // React clean-effect tracker sync
     useEffect(() => {
         fetchWallpapers(currentQuery);
-    }, [currentQuery]); 
+    }, [currentQuery, fetchWallpapers]); 
 
     // Synchronize Profile Collection Data Lists
     useEffect(() => {
         if (!user) {
-            loadLocalCollections();
+            // Avoid setting state in effect directly by wrapping in a conditional or callback
+            const local = loadLocalCollections();
+            setCollectionNames(Object.keys(local));
             return;
         }
 
@@ -159,7 +185,7 @@ export default function ExplorePage() {
         };
 
         getCollections();
-    }, [user]);
+    }, [user, loadLocalCollections]);
 
     // Synchronize User Profile Bookmarks / Favorites Maps
     useEffect(() => {
@@ -191,29 +217,6 @@ export default function ExplorePage() {
 
         loadFavorites();
     }, [user]);
-
-    const loadLocalCollections = () => {
-        try {
-            const saved = window.localStorage.getItem('user_collections');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                setCollectionNames(Object.keys(parsed));
-                return parsed;
-            }
-        } catch (error) {
-            console.error('Fetch collections failed', error);
-        }
-
-        const seedData = {
-            Favorites: [],
-            'Aesthetic Themes': [],
-            'Neon Horizon Setup': [],
-        };
-
-        window.localStorage.setItem('user_collections', JSON.stringify(seedData));
-        setCollectionNames(Object.keys(seedData));
-        return seedData;
-    };
 
     const openSaveModal = (wallpaper, event) => {
         event.stopPropagation();
@@ -388,7 +391,11 @@ export default function ExplorePage() {
 
         try {
             const favorite = await postFavorite({ userId: user.uid, wallpaperId: id, metadata: {} });
-            setLikedIds(prev => new Set(prev).add(id));
+            setLikedIds(prev => {
+                const newLiked = new Set(prev);
+                newLiked.add(id);
+                return newLiked;
+            });
             setFavoriteIdByWallpaper(prev => ({ ...prev, [id]: favorite._id }));
             logEngagement({ userId: user.uid, eventType: 'favorite_wallpaper', metadata: { wallpaperId: id } });
             toast.success('Added to favorites.');
@@ -399,106 +406,91 @@ export default function ExplorePage() {
     };
 
     const triggerDownload = async (imgUrl, filename) => {
-        const toastId = toast.loading("Preparing high-res asset download...");
         try {
+            toast.loading("Preparing your download...");
             const response = await fetch(imgUrl);
             const blob = await response.blob();
             const blobUrl = window.URL.createObjectURL(blob);
             
             const link = document.createElement('a');
             link.href = blobUrl;
-            
-            const cleanName = filename.replace(/\s+/g, '-').toLowerCase();
-            link.download = `${cleanName}-puffywalls.jpg`;
+            link.download = `${filename.replace(/\s+/g, '-').toLowerCase()}-puffy.jpg`;
             
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
             window.URL.revokeObjectURL(blobUrl);
-            toast.dismiss(toastId);
-            toast.success("Download started! 🚀");
+            
+            toast.dismiss();
+            toast.success("Wallpaper saved successfully! 🎉");
         } catch (err) {
-            console.error("Download pipeline broke:", err);
-            toast.dismiss(toastId);
-            toast.error("Could not complete asset download.");
+            console.error("Download failed:", err);
+            toast.dismiss();
+            toast.error("Download failed. Please try again.");
         }
     };
 
     return (
-        <div className="explore-page-container">
-            {/* HERO BANNER BLOCK CONTAINER */}
-            <div className="explore-hero">
-                <div className="explore-hero-overlay"></div>
-                <div className="explore-hero-content">
-                    <h1>Explore the Best Wallpapers</h1>
-                    <p>Curated high-quality backgrounds for your screens</p>
-                    <div className="hero-search-wrapper">
-                        <SearchBar onSearch={handleSearch} />
-                    </div>
+        <div className="explore-container">
+            <header className="explore-header">
+                <div className="explore-hero">
+                    <h1>Explore Premium Wallpapers</h1>
+                    <p>Discover hand-picked collections for your devices</p>
+                    <SearchBar onSearch={handleSearch} />
                 </div>
-            </div>
+            </header>
 
-            {/* INTERACTIVE CATEGORY ROW PILLS */}
-            <div className="categories-container">
-                {CATEGORIES.map((cat) => (
-                    <button 
-                        key={cat}
-                        onClick={() => handleCategoryClick(cat)}
-                        className={`category-pill ${currentQuery === cat ? 'active' : ''}`}
-                    >
-                        {cat}
-                    </button>
-                ))}
-            </div>
+            <nav className="category-nav">
+                <div className="category-scroll">
+                    {CATEGORIES.map((category) => (
+                        <button 
+                            key={category} 
+                            className={`category-pill ${currentQuery === category ? 'active' : ''}`}
+                            onClick={() => handleCategoryClick(category)}
+                        >
+                            {category}
+                        </button>
+                    ))}
+                </div>
+            </nav>
 
-            {/* MAIN CONTENT GALLERY GRID FEED */}
-            <div className="explore-content">
-                <h3 className="query-title">Showing results for: <span>{currentQuery}</span></h3>
-
+            <main className="explore-grid">
                 {loading ? (
-                    <div className="loading-container">
+                    <div className="loading-state">
                         <div className="spinner"></div>
-                        <p>Fetching beautiful wallpapers...</p>
+                        <p>Curating your gallery...</p>
                     </div>
-                ) : wallpapers.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '4rem 0', color: '#888' }}>
-                        <p>No wallpapers found for this query. Try another keyword!</p>
-                    </div>
+                ) : wallpapers.length > 0 ? (
+                    wallpapers.map((wallpaper) => (
+                        <WallpaperCard 
+                            key={wallpaper.id} 
+                            wallpaper={wallpaper}
+                            isLiked={likedIds.has(wallpaper.id)}
+                            imageFormat={imageFormat}
+                            onOpenModal={openModal}
+                            onOpenSaveModal={openSaveModal}
+                            onToggleLike={toggleLike}
+                            onTriggerDownload={triggerDownload}
+                        />
+                    ))
                 ) : (
-                    <div className="wallpaper-grid">
-                        {wallpapers.map((wallpaper) => (
-                            <WallpaperCard 
-                                key={wallpaper.id}
-                                wallpaper={wallpaper}
-                                isLiked={likedIds.has(wallpaper.id)}
-                                imageFormat={imageFormat}
-                                onOpenModal={openModal}
-                                onOpenSaveModal={openSaveModal}
-                                onToggleLike={toggleLike}
-                                onTriggerDownload={triggerDownload}
-                            />
-                        ))}
+                    <div className="empty-state">
+                        <p>No wallpapers found for &quot;{currentQuery}&quot;</p>
                     </div>
                 )}
-            </div>
+            </main>
 
-            {/* COLLECTION MODAL CONTAINER */}
+            {/* Collection Save Modal */}
             {showCollectionModal && (
-                <div className="collection-modal-backdrop" onClick={closeSaveModal}>
-                    <div className="collection-modal-card" onClick={(event) => event.stopPropagation()}>
-                        <div className="collection-modal-header">
-                            <h2>Save Wallpaper</h2>
-                            <p>Choose an existing collection or create a new one.</p>
-                        </div>
-
+                <div className="collection-modal-overlay" onClick={closeSaveModal}>
+                    <div className="collection-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <h2>Save to Collection</h2>
                         <div className="collection-list">
                             {collectionNames.length > 0 ? (
                                 collectionNames.map((name) => (
-                                    <button
-                                        key={name}
-                                        type="button"
-                                        className="collection-choice-btn"
+                                    <button 
+                                        key={name} 
+                                        className="collection-item-btn"
                                         onClick={() => saveWallpaperToCollection(name)}
                                     >
                                         {name}

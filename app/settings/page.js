@@ -26,8 +26,10 @@ export default function SettingsPage() {
 
     useEffect(() => {
         if (user) {
-            setUsername(user.displayName || '');
-            setEmail(user.email || '');
+            // Only update state if it's currently empty to avoid overwriting user input
+            // or causing unnecessary re-renders during editing.
+            setUsername(prev => prev || user.displayName || '');
+            setEmail(prev => prev || user.email || '');
         }
     }, [user]);
 

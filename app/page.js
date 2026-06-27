@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, memo } from "react";
+import { useEffect, useState, memo, useCallback } from "react";
 import Image from "next/image";
 import { Download, FolderPlus, Heart, Share } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
-import { useShareModal } from "../lib/ShareModalContext";
+import { useShareModal } from "@/lib/ShareModalContext";
 import { toast } from "sonner";
 import { fetchFavorites, postFavorite, deleteFavorite } from "@/lib/api";
 import './home.css'; 
@@ -100,7 +100,7 @@ export default function Page() {
     const { openModal } = useShareModal();
 
     // Fetch wallpapers data array
-    const fetchWallpapers = async (queryToFetch) => {
+    const fetchWallpapers = useCallback(async (queryToFetch) => {
         setLoading(true); 
         try {
             const response = await fetch(`/api/wallpapers?query=${queryToFetch}&per_page=30`);
@@ -112,11 +112,11 @@ export default function Page() {
         } finally {
             setLoading(false); 
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchWallpapers(currentQuery);
-    }, [currentQuery]); 
+    }, [currentQuery, fetchWallpapers]); 
 
     // Sync remote profile favorites 
     useEffect(() => {

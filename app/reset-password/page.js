@@ -2,27 +2,24 @@
 
 import './reset-password.css';       
 import { Lock, Eye } from 'lucide-react';
-import { useState, useEffect } from 'react';   
-import { useRouter, useSearchParams } from 'next/navigation';    
+import { useState, useMemo } from 'react';   
+import { useRouter } from 'next/navigation';    
 import { confirmPasswordReset } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { toast } from 'sonner'; // next.js library for toast notification 
+import { toast } from 'sonner'; 
 
 export default function ResetPasswordPage() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
-    const [oobCode, setOobCode] = useState(null);
     const router = useRouter();
 
-    // Use URL search params safely
-    useEffect(() => {
+    // Derive oobCode directly from URL instead of storing in state via useEffect
+    const oobCode = useMemo(() => {
+        if (typeof window === 'undefined') return null;
         const params = new URLSearchParams(window.location.search);
-        const code = params.get('oobCode');
-        if (code) {
-            setOobCode(code);
-        }
+        return params.get('oobCode');
     }, []);
 
     const handleResetPassword = async (e) => {

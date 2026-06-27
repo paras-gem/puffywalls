@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import SearchBar from '../../components/SearchBar'; 
-import { Heart, Download, Plus, Flame, MessageCircle, Share } from 'lucide-react';
-import { useShareModal } from '../../lib/ShareModalContext';
+import { Heart, Download, Plus, Flame, Share } from 'lucide-react';
+import { useShareModal } from '@/lib/ShareModalContext';
 import { useImageFormat } from "@/hooks/useImageFormat";
 import { useAuth } from '@/lib/AuthContext';
 import { toast } from "sonner";
@@ -30,9 +31,8 @@ export default function Trending() {
 
     /**
      * 🌐 PEXELS LIVE DATA STREAMING
-     * Communicates directly with your protected internal Next.js pipeline to extract assets.
      */
-    const fetchTrendingFeed = async (queryToFetch) => {
+    const fetchTrendingFeed = useCallback(async (queryToFetch) => {
         setLoading(true);
         try {
             // Limits to top 30 assets per page as configured
@@ -45,12 +45,12 @@ export default function Trending() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     // Resolves initial API hydration cycles automatically upon view initialization
     useEffect(() => {
         fetchTrendingFeed(currentQuery);
-    }, []);
+    }, [currentQuery, fetchTrendingFeed]);
 
     useEffect(() => {
         if (!user) {
@@ -87,13 +87,11 @@ export default function Trending() {
     // Re-routes custom search bar entry points into the asynchronous data loader
     const handleSearch = (searchTerm) => {
         setCurrentQuery(searchTerm);
-        fetchTrendingFeed(searchTerm);
     };
 
     // Controls tracking updates when choosing predefined trending layout pills
     const handleCategoryClick = (category) => {
         setCurrentQuery(category);
-        fetchTrendingFeed(category);
     };
 
     // Tracks like actions locally using a clean toggle state, with backend persistence for signed in users
@@ -153,7 +151,6 @@ export default function Trending() {
 
     /**
      * 📥 DIRECT SYSTEM FILE DOWNLOAD
-     * Converts raw external server paths straight into binary arrays to bypass layout tabs.
      */
     const triggerDownload = async (imgUrl, filename) => {
         try {
@@ -190,7 +187,7 @@ export default function Trending() {
                     <div className="trending-badge">
                         <Flame size={14} className="tag-flame" /> Live Hot Metrics
                     </div>
-                    <h1>Discover What's <span className="gradient-text">Trending</span></h1>
+                    <h1>Discover What&apos;s <span className="gradient-text">Trending</span></h1>
                     <p>The most viewed, downloaded, and highly rated creations this week</p>
                     
                     {/* INTEGRATED APPLICATION SEARCH BAR */}
@@ -251,12 +248,16 @@ export default function Trending() {
                                     </div>
 
                                     {/* WALLPAPER RENDER IMAGE */}
-                                    <img 
-                                        src={wallpaper?.src?.[imageFormat] || wallpaper?.src?.large || ''} 
-                                        alt={wallpaper.alt || 'Trending Artwork'} 
-                                        className="trending-img"
-                                        loading="lazy"
-                                    />
+                                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                        <Image 
+                                            src={wallpaper?.src?.[imageFormat] || wallpaper?.src?.large || ''} 
+                                            alt={wallpaper.alt || 'Trending Artwork'} 
+                                            fill
+                                            className="trending-img"
+                                            style={{ objectFit: 'cover' }}
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        />
+                                    </div>
 
                                     {/* INTERACTIVE HOVER OVERLAY BOX */}
                                     <div className="trending-overlay">
