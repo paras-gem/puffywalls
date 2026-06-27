@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { X, Share2, Download, Copy, Mail, MessageCircle, Heart, Globe, Link, FolderPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/AuthContext';
@@ -160,10 +161,6 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
     }
   };
 
-  const handleClearComments = () => {
-    setCommentText('');
-  };
-
   const toggleLike = async () => {
     if (!wallpaperId) return;
 
@@ -204,7 +201,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
     window.open(href, '_blank', 'noopener,noreferrer');
   };
 
-  const loadCollections = async () => {
+  const loadCollections = useCallback(async () => {
     if (user) {
       try {
         const data = await fetchUserCollections(user.uid);
@@ -242,7 +239,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
     setCollections(seed);
     setCollectionNames(['Favorites']);
     return seed;
-  };
+  }, [user]);
 
   const openSavePanel = async () => {
     const vault = await loadCollections();
@@ -378,7 +375,15 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
         </button>
 
         <div className="share-preview-area">
-          <img className={`share-preview-img ${selectedImageClass}`} src={imageUrl} alt={title} />
+          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            <Image 
+              className={`share-preview-img ${selectedImageClass}`} 
+              src={imageUrl} 
+              alt={title} 
+              fill
+              style={{ objectFit: 'contain' }}
+            />
+          </div>
         </div>
 
         <div className="share-header">
@@ -432,74 +437,81 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
             );
           })}
           <button type="button" className="share-native-btn" onClick={handleNativeShare}>
-            <Share2 size={18} /> Use Device Share
+            <Share2 size={18} /> Share via System
           </button>
         </div>
 
-        {showSaveModal && (
-          <div className="save-panel">
-            <div className="save-panel-header">
-              <h3>Save to Collection</h3>
-              <button className="btn-close-save" onClick={() => closeSavePanel()}>Close</button>
-            </div>
-
-            <div className="save-choices">
-              {collectionNames.length === 0 ? (
-                <p className="save-empty">No collections found.</p>
-              ) : (
-                collectionNames.map((name) => (
-                  <button key={name} className="collection-choice" onClick={() => saveToCollection(name)}>{name}</button>
-                ))
+        <div className="share-comments-section">
+          <p className="share-section-label">Comments ({comments.length})</p>
+          <form className="comment-form" onSubmit={handleCommentSubmit}>
+            <div className="comment-input-wrapper">
+              <input
+                id="share-comment-input"
+                type="text"
+                placeholder="Write a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+              />
+              {commentText && (
+                <button type="button" className="clear-comment" onClick={() => setCommentText('')}>
+                  <X size={14} />
+                </button>
               )}
             </div>
-
-            <form className="save-create-form" onSubmit={handleCreateAndSave}>
-              <input value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} placeholder="New collection name" maxLength={24} />
-              <button type="submit" className="create-save-btn">Create & Save</button>
-            </form>
-          </div>
-        )}
-
-        <div className="comments-section">
-          <p className="share-section-label">Community Comments</p>
-          <form className="comments-form" onSubmit={handleCommentSubmit}>
-            <textarea
-              id="share-comment-input"
-              className="comment-textarea"
-              rows={4}
-              placeholder="Share what you love about this wallpaper..."
-              value={commentText}
-              onChange={(event) => setCommentText(event.target.value)}
-            />
-            <div className="comments-form-actions">
-              <button type="button" className="comment-clear-btn" onClick={handleClearComments}>
-                Clear
-              </button>
-              <button type="submit" className="comment-submit-btn">
-                Post Comment
-              </button>
-            </div>
+            <button type="submit" className="post-comment-btn" disabled={!commentText.trim()}>
+              Post
+            </button>
           </form>
 
-          <div className="comments-scroll-box">
-            {comments.length === 0 ? (
-              <p className="comments-empty">No comments yet. Be the first to say something nice.</p>
-            ) : (
+          <div className="comments-list">
+            {comments.length > 0 ? (
               comments.map((comment) => (
-                <div key={comment.id || comment._id} className="comment-bubble">
-                  <div className="comment-meta">
-                    <span className="comment-user">{comment.authorName || 'Guest'}</span>
-                    <span className="comment-time">{comment.createdAt ? new Date(comment.createdAt).toLocaleString() : 'Just now'}</span>
-                  </div>
-                  <div className="comment-body-wrapper">
-                    {/* 🟢 FIXED: Supports lookups on both 'body' and 'text' object parameters smoothly */}
-                    <p className="comment-payload">{comment.body || comment.text}</p>
-                  </div>
+                <div key={comment._id} className="comment-item">
+                  <div className="comment-author">{comment.authorName}</div>
+                  <div className="comment-text">{comment.text}</div>
+                  <div className="comment-date">{new Date(comment.createdAt).toLocaleDateString()}</div>
                 </div>
               ))
+            ) : (
+              <div className="no-comments">No comments yet. Be the first to share your thoughts!</div>
             )}
           </div>
         </div>
+
+        {showSaveModal && (
+          <div className="save-collection-overlay" onClick={closeSavePanel}>
+            <div className="save-collection-panel" onClick={(e) => e.stopPropagation()}>
+              <div className="panel-header">
+                <h3>Save to Collection</h3>
+                <button className="panel-close" onClick={closeSavePanel}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="collection-list">
+                {collectionNames.map((name) => (
+                  <button key={name} className="collection-item" onClick={() => saveToCollection(name)}>
+                    <FolderPlus size={16} /> {name}
+                  </button>
+                ))}
+              </div>
+
+              <form className="create-collection-form" onSubmit={handleCreateAndSave}>
+                <input
+                  type="text"
+                  placeholder="New collection name"
+                  value={newCollectionName}
+                  onChange={(e) => setNewCollectionName(e.target.value)}
+                  maxLength={24}
+                  required
+                />
+                <button type="submit" className="create-btn">
+                  Create & Save
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState, useRef } from 'react';
-import { Plus, ImageIcon, Trash2, ArrowLeft, Download, Share, FolderHeart, Edit3, Search, Image as ImageIconSec, FolderPlus } from 'lucide-react';
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import Image from 'next/image';
+import { Plus, Trash2, ArrowLeft, Download, Share, Edit3, Search, FolderPlus } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
-import { useShareModal } from '../../lib/ShareModalContext';
+import { useShareModal } from '@/lib/ShareModalContext';
 import { useImageFormat } from "@/hooks/useImageFormat";
 import { toast } from "sonner";
-import { fetchUserCollections, createCollection, updateCollection, deleteCollection, logEngagement } from '@/lib/api';
+import { fetchUserCollections, createCollection, updateCollection, deleteCollection } from '@/lib/api';
 import './collections.css';
 
 export default function Collections() {
@@ -37,10 +38,8 @@ export default function Collections() {
 
     /**
      * 🌌 DYNAMIC BACKDROP EXTRACTOR
-     * Selects a high-quality preview asset from your real collections to map onto the fullscreen canvas
-     * Declared as a standard hoisted function to avoid execution-before-definition errors.
      */
-    function extractDynamicBackdrop(vaultData) {
+    const extractDynamicBackdrop = useCallback((vaultData) => {
         const folderKeys = Object.keys(vaultData);
         for (const key of folderKeys) {
             if (vaultData[key] && vaultData[key].length > 0) {
@@ -48,16 +47,16 @@ export default function Collections() {
                 const targetSrc = firstAsset.src?.large2x || firstAsset.src?.original || firstAsset.src?.large;
                 if (targetSrc) {
                     setBgImage(targetSrc);
-                    break;
+                    return;
                 }
             }
         }
-    }
+    }, []);
 
     /**
      * 📥 INTEGRATED FILE RECOVERY DECK
      */
-    const loadLocalCollections = () => {
+    const loadLocalCollections = useCallback(() => {
         setLoading(true);
         try {
             const vaultPayload = localStorage.getItem('user_collections');
@@ -85,9 +84,9 @@ export default function Collections() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [extractDynamicBackdrop]);
 
-    const loadRemoteCollections = async () => {
+    const loadRemoteCollections = useCallback(async () => {
         setLoading(true);
         try {
             const remoteCollections = await fetchUserCollections(user.uid);
@@ -115,18 +114,18 @@ export default function Collections() {
             setLoading(false);
         }
         return {};
-    };
+    }, [user, extractDynamicBackdrop]);
 
-    const reloadCollections = async () => {
+    const reloadCollections = useCallback(async () => {
         if (user) {
             return loadRemoteCollections();
         }
         return loadLocalCollections();
-    };
+    }, [user, loadRemoteCollections, loadLocalCollections]);
 
     useEffect(() => {
         reloadCollections();
-    }, [user]);
+    }, [reloadCollections]);
 
     useEffect(() => {
         const handleStorage = () => {
@@ -136,7 +135,7 @@ export default function Collections() {
         };
         window.addEventListener('storage', handleStorage);
         return () => window.removeEventListener('storage', handleStorage);
-    }, [user]);
+    }, [user, loadLocalCollections]);
 
     // Close any open move popover when clicking outside
     useEffect(() => {
@@ -164,7 +163,10 @@ export default function Collections() {
         });
     }, [selectedFolder, collections, searchQuery]);
 
-    const calculatedTotalItems = Object.values(collections).reduce((sum, itemArr) => sum + itemArr.length, 0);
+    const calculatedTotalItems = useMemo(() => 
+        Object.values(collections).reduce((sum, itemArr) => sum + itemArr.length, 0),
+        [collections]
+    );
 
     // === MUTATION CONTROLS ===
 
@@ -375,262 +377,168 @@ export default function Collections() {
                 </div>
             </div>
 
-            {/* MAIN CONTENT HUB */}
+            {/* MAIN CONTENT WORKSPACE */}
             <div className="collections-content">
-                <div className="collections-search-global">
-                    <input
-                        type="text"
-                        className="wallpaper-search-input"
-                        placeholder={selectedFolder ? `Search saved wallpapers in ${selectedFolder}...` : 'Search saved wallpapers...'}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-                {loading ? (
-                    <div className="collections-loading">
-                        <div className="spinner"></div>
-                        <p>Synchronizing internal wallpaper files...</p>
+                {!selectedFolder ? (
+                    /* FOLDER GRID VIEW */
+                    <div className="folders-grid">
+                        {Object.keys(collections).map((folderKey) => (
+                            <div 
+                                key={folderKey} 
+                                className="folder-card"
+                                onClick={() => setSelectedFolder(folderKey)}
+                            >
+                                <div className="folder-icon-wrapper">
+                                    <div className="folder-icon-main" />
+                                    <div className="folder-icon-tab" />
+                                </div>
+                                <div className="folder-info">
+                                    <h3>{folderKey}</h3>
+                                    <p>{collections[folderKey].length} wallpapers</p>
+                                </div>
+                                <button 
+                                    className="folder-manage-btn"
+                                    onClick={(e) => openManageModal(folderKey, e)}
+                                >
+                                    <Edit3 size={16} />
+                                </button>
+                            </div>
+                        ))}
                     </div>
-                ) : !selectedFolder ? (
-                    <>
-                        <h2 className="section-title">
-                            <span>Library Folders</span>
-                        </h2>
-                        
-                        {Object.keys(collections).length === 0 ? (
-                            <div className="collections-empty">
-                                <div className="empty-icon">
-                                    <FolderHeart size={36} />
-                                </div>
-                                <h2>No Collection Folders Found</h2>
-                                <p>Click the "New Collection" button above to get started, or save direct assets inside the wallpaper detail layouts.</p>
-                            </div>
-                        ) : (
-                            <div className="collections-grid">
-                                {Object.keys(collections).map((folderName, idx) => {
-                                    const savedAssets = collections[folderName] || [];
-                                    const assetsLength = savedAssets.length;
-                                    const previewAssets = savedAssets.slice(0, 4);
-
-                                    return (
-                                        <div 
-                                            key={folderName} 
-                                            className="collection-card"
-                                            onClick={() => setSelectedFolder(folderName)}
-                                            style={{ animationDelay: `${idx * 0.05}s` }}
-                                        >
-                                            {/* IMAGE PREVIEW FRAME BLOCK */}
-                                            {assetsLength >= 1 ? (
-                                                <div className="collection-preview">
-                                                    {previewAssets.map((photo, pIdx) => (
-                                                        <img 
-                                                            key={photo.id || pIdx} 
-                                                            src={photo.src?.medium || photo.src?.large} 
-                                                            alt="Directory Sample Cover" 
-                                                        />
-                                                    ))}
-                                                    {assetsLength < 4 && Array.from({ length: 4 - assetsLength }).map((_, padIdx) => (
-                                                        <div key={`pad-${padIdx}`} style={{ background: 'rgba(255,255,255,0.02)' }}></div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className="collection-preview-placeholder">
-                                                    <ImageIcon size={32} />
-                                                </div>
-                                            )}
-
-                                            {/* DIRECTORY BOTTOM BAR META ENTRY */}
-                                            <div className="collection-footer">
-                                                <div>
-                                                    <h3 className="collection-name">{folderName}</h3>
-                                                    <p className="collection-count">{assetsLength} items saved</p>
-                                                </div>
-                                                
-                                                <button 
-                                                    className="collection-menu-btn"
-                                                    title="Manage Folder"
-                                                    onClick={(e) => openManageModal(folderName, e)}
-                                                >
-                                                    <Edit3 size={15} color="#a6c1ee" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </>
                 ) : (
-                    <>
-                        <button className="btn-back" onClick={() => { setSelectedFolder(null); setSearchQuery(''); }}>
-                            <ArrowLeft size={16} /> Return to Directory List
-                        </button>
-                        
-                        <h2 className="section-title">
-                            Folder Content: <span>{selectedFolder}</span>
-                        </h2>
+                    /* ASSET LIST VIEW */
+                    <div className="assets-view">
+                        <div className="assets-header">
+                            <button className="btn-back" onClick={() => setSelectedFolder(null)}>
+                                <ArrowLeft size={18} /> Back to Folders
+                            </button>
+                            <div className="assets-title-group">
+                                <h2>{selectedFolder}</h2>
+                                <p>Viewing {filteredWallpapers.length} items in this collection</p>
+                            </div>
+                            <div className="assets-search-wrapper">
+                                <Search size={18} className="search-icon" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search in folder..." 
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
 
-                        {(!collections[selectedFolder] || collections[selectedFolder].length === 0) ? (
-                            <div className="collections-empty">
-                                <div className="empty-icon">
-                                    <ImageIconSec size={36} />
-                                </div>
-                                <h2>This folder is empty</h2>
-                                <p>Open a wallpaper's full detail screen elsewhere in the application, and save items into your custom "{selectedFolder}" folder to populate this page.</p>
+                        {filteredWallpapers.length === 0 ? (
+                            <div className="empty-assets">
+                                <FolderPlus size={48} />
+                                <p>{searchQuery ? "No matching wallpapers found." : "This collection folder is currently empty."}</p>
                             </div>
                         ) : (
-                            <div className="collection-wallpapers-grid">
-                                {filteredWallpapers.length === 0 ? (
-                                    <div className="collections-empty">
-                                        <div className="empty-icon">
-                                            <Search size={36} />
+                            <div className="assets-grid">
+                                {filteredWallpapers.map((photo) => (
+                                    <div key={photo.id || photo.wallpaperId} className="asset-card" onClick={() => openModal(photo)}>
+                                        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                            <Image 
+                                                src={photo.src?.[imageFormat] || photo.src?.large || ''} 
+                                                alt={photo.alt || 'Wallpaper'} 
+                                                fill
+                                                style={{ objectFit: 'cover' }}
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                            />
                                         </div>
-                                        <h2>No Saved Wallpapers Match</h2>
-                                        <p>Try another keyword or remove the search filter to view all saved wallpapers.</p>
-                                    </div>
-                                ) : (
-                                    filteredWallpapers.map((photo, itemIdx) => (
-                                        <div 
-                                            key={photo.id} 
-                                            className="saved-wallpaper-card"
-                                            onClick={() => openModal(photo)}
-                                            style={{ animationDelay: `${itemIdx * 0.04}s` }}
-                                        >
-                                            <div className="saved-wallpaper-inner">
-                                                <img 
-                                                    src={photo.src[imageFormat] || photo.src.large} 
-                                                    alt={photo.alt || 'Personal Curation Asset'} 
-                                                    loading="lazy"
-                                                />
-                                            </div>
-
-                                            <div className="saved-wallpaper-overlay">
+                                        <div className="asset-overlay">
+                                            <div className="asset-actions">
                                                 <button 
-                                                    className="collection-menu-btn"
-                                                    title="Delete item from folder"
-                                                    style={{ opacity: 1, backgroundColor: 'rgba(15,17,21,0.75)' }}
-                                                    onClick={(e) => extractItemFromFolder(photo.id, e)}
-                                                >
-                                                    <Trash2 size={15} color="#ff4757" />
-                                                </button>
-                                                
-                                                <button 
-                                                    className="collection-menu-btn"
-                                                    title="Download raw source file"
-                                                    style={{ opacity: 1, backgroundColor: 'rgba(15,17,21,0.75)' }}
+                                                    className="asset-btn" 
+                                                    title="Download"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        processBinarySystemDownload(photo.src.original, photo.alt || 'curated-wallpaper');
+                                                        processBinarySystemDownload(photo.src?.original, photo.alt || 'wallpaper');
                                                     }}
                                                 >
-                                                    <Download size={15} color="#ffffff" />
+                                                    <Download size={18} />
                                                 </button>
-
                                                 <button 
-                                                    className="collection-menu-btn"
-                                                    title="Inspect details"
-                                                    style={{ opacity: 1, backgroundColor: 'rgba(15,17,21,0.75)' }}
+                                                    className="asset-btn" 
+                                                    title="Share"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         openModal(photo);
                                                     }}
                                                 >
-                                                    <Share size={15} color="#ffffff" />
+                                                    <Share size={18} />
                                                 </button>
-                                                
-                                                <button
-                                                    className="collection-menu-btn move-btn"
-                                                    title="Move to another folder"
-                                                    style={{ opacity: 1, backgroundColor: 'rgba(15,17,21,0.75)' }}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setMovePanelFor(photo.id);
-                                                        const firstOther = Object.keys(collections).find(k => k !== selectedFolder) || '';
-                                                        setMoveTarget(firstOther);
-                                                    }}
+                                                <button 
+                                                    className="asset-btn btn-delete" 
+                                                    title="Remove"
+                                                    onClick={(e) => extractItemFromFolder(photo.id || photo.wallpaperId, e)}
                                                 >
-                                                    <FolderPlus size={14} color="#fff" />
+                                                    <Trash2 size={18} />
                                                 </button>
-
-                                                {movePanelFor === photo.id && (
-                                                    <div className="move-popover" ref={movePanelRef} onClick={(e) => e.stopPropagation()}>
-                                                        <div className="move-popover-title">Move to</div>
-                                                        <div className="move-popover-list">
-                                                            {Object.keys(collections).filter(k => k !== selectedFolder).length === 0 ? (
-                                                                <div className="move-empty">No other folders</div>
-                                                            ) : (
-                                                                Object.keys(collections).filter(k => k !== selectedFolder).map((k) => (
-                                                                    <button
-                                                                        key={k}
-                                                                        className={`move-target-btn ${moveTarget === k ? 'active' : ''}`}
-                                                                        onClick={() => setMoveTarget(k)}
-                                                                    >
-                                                                        {k}
-                                                                    </button>
-                                                                ))
-                                                            )}
-                                                        </div>
-                                                        <div className="move-popover-actions">
-                                                            <button
-                                                                className="btn-modal-cancel"
-                                                                onClick={() => { setMovePanelFor(null); setMoveTarget(''); }}
-                                                            >
-                                                                Cancel
-                             </button>
-                                                            <button
-                                                                className="btn-modal-confirm"
-                                                                onClick={async () => {
-                                                                    if (!moveTarget) return toast.error('Select a target folder first.');
-                                                                    const from = selectedFolder;
-                                                                    const to = moveTarget;
-                                                                    if (from === to) return toast.error('Already in selected folder.');
-                                                                    const items = collections[from] || [];
-                                                                    const moving = items.find(i => i.id === photo.id || i.wallpaperId === photo.id);
-                                                                    if (!moving) return toast.error('Item not found.');
-
-                                                                    if (user && collectionMeta[from] && collectionMeta[to]) {
-                                                                        try {
-                                                                            const sourceCollection = collectionMeta[from];
-                                                                            const targetCollection = collectionMeta[to];
-                                                                            const sourceItems = (sourceCollection.wallpapers || []).filter(item => item.wallpaperId !== photo.id);
-                                                                            const movedItem = sourceCollection.wallpapers.find(item => item.wallpaperId === photo.id);
-                                                                            const destinationItems = [...(targetCollection.wallpapers || []), movedItem || { wallpaperId: photo.id, metadata: photo }];
-                                                                            await updateCollection(sourceCollection._id, { wallpapers: sourceItems });
-                                                                            await updateCollection(targetCollection._id, { wallpapers: destinationItems });
-                                                                            await reloadCollections();
-                                                                            setMovePanelFor(null);
-                                                                            setMoveTarget('');
-                                                                            toast.success(`Wallpaper shifted to folder "${to}"`);
-                                                                        } catch (error) {
-                                                                            console.error("Failed moving workspace database entry:", error);
-                                                                            toast.error("Could not sync move operation to server.");
-                                                                        }
-                                                                    } else {
-                                                                        const updatedVaults = { ...collections };
-                                                                        updatedVaults[from] = items.filter(i => i.id !== photo.id);
-                                                                        updatedVaults[to] = [...(updatedVaults[to] || []), moving];
-                                                                        setCollections(updatedVaults);
-                                                                        localStorage.setItem('user_collections', JSON.stringify(updatedVaults));
-                                                                        setMovePanelFor(null);
-                                                                        setMoveTarget('');
-                                                                        toast.success(`Wallpaper shifted to folder "${to}"`);
-                                                                    }
-                                                                }}
-                                                            >
-                                                                Confirm Move
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
                                             </div>
                                         </div>
-                                    ))
-                                )}
+                                    </div>
+                                ))}
                             </div>
                         )}
-                    </>
+                    </div>
                 )}
             </div>
+
+            {/* MODALS SECTION */}
+            
+            {/* Create Folder Modal */}
+            {showCreateModal && (
+                <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+                    <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()}>
+                        <h2>Create New Collection</h2>
+                        <form onSubmit={createCollectionSubmit}>
+                            <input 
+                                type="text" 
+                                placeholder="Folder name (e.g., Summer Vibes)" 
+                                value={newFolderName}
+                                onChange={(e) => setNewFolderName(e.target.value)}
+                                autoFocus
+                                maxLength={24}
+                                required
+                            />
+                            <div className="modal-actions">
+                                <button type="button" className="btn-cancel" onClick={() => setShowCreateModal(false)}>Cancel</button>
+                                <button type="submit" className="btn-confirm">Create Folder</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Manage Folder Modal */}
+            {showManageModal && (
+                <div className="modal-overlay" onClick={() => setShowManageModal(false)}>
+                    <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()}>
+                        <h2>Manage Collection</h2>
+                        <form onSubmit={handleRenameFolder}>
+                            <label>Rename Folder</label>
+                            <input 
+                                type="text" 
+                                value={renameValue}
+                                onChange={(e) => setRenameValue(e.target.value)}
+                                autoFocus
+                                maxLength={24}
+                                required
+                            />
+                            <div className="modal-actions">
+                                <button type="button" className="btn-delete-full" onClick={() => purgeCollectionFolder(folderToManage)}>
+                                    <Trash2 size={16} /> Delete Collection
+                                </button>
+                                <div className="right-actions">
+                                    <button type="button" className="btn-cancel" onClick={() => setShowManageModal(false)}>Cancel</button>
+                                    <button type="submit" className="btn-confirm">Save Changes</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }
