@@ -203,8 +203,8 @@ export default function ExplorePage() {
                     const idMap = {};
                     favorites.forEach((favorite) => {
                         if (favorite.wallpaperId) {
-                            ids.add(favorite.wallpaperId);
-                            idMap[favorite.wallpaperId] = favorite._id;
+                            ids.add(String(favorite.wallpaperId));
+                            idMap[String(favorite.wallpaperId)] = favorite._id;
                         }
                     });
                     setLikedIds(ids);
@@ -357,30 +357,30 @@ export default function ExplorePage() {
             setLikedIds(prev => {
                 const newLiked = new Set(prev);
                 if (newLiked.has(id)) {
-                    newLiked.delete(id);
+                    newLiked.delete(String(id));
                 } else {
-                    newLiked.add(id);
+                    newLiked.add(String(id));
                 }
                 return newLiked;
             });
             return;
         }
 
-        if (likedIds.has(id)) {
-            const favoriteId = favoriteIdByWallpaper[id];
+        if (likedIds.has(String(id))) {
+            const favoriteId = favoriteIdByWallpaper[String(id)];
             try {
-                await deleteFavorite({ favoriteId, userId: user.uid, wallpaperId: id });
+                await deleteFavorite({ favoriteId, userId: user.uid, wallpaperId: String(id) });
                 setLikedIds(prev => {
                     const newLiked = new Set(prev);
-                    newLiked.delete(id);
+                    newLiked.delete(String(id));
                     return newLiked;
                 });
                 setFavoriteIdByWallpaper(prev => {
                     const updated = { ...prev };
-                    delete updated[id];
+                    delete updated[String(id)];
                     return updated;
                 });
-                logEngagement({ userId: user.uid, eventType: 'unfavorite_wallpaper', metadata: { wallpaperId: id } });
+                logEngagement({ userId: user.uid, eventType: 'unfavorite_wallpaper', metadata: { wallpaperId: String(id) } });
                 toast.success('Removed from favorites.');
             } catch (error) {
                 console.error('Failed to remove favorite:', error);
@@ -390,14 +390,14 @@ export default function ExplorePage() {
         }
 
         try {
-            const favorite = await postFavorite({ userId: user.uid, wallpaperId: id, metadata: {} });
+            const favorite = await postFavorite({ userId: user.uid, wallpaperId: String(id), metadata: wallpapers.find((item) => item.id === id) || {} });
             setLikedIds(prev => {
                 const newLiked = new Set(prev);
-                newLiked.add(id);
+                newLiked.add(String(id));
                 return newLiked;
             });
-            setFavoriteIdByWallpaper(prev => ({ ...prev, [id]: favorite._id }));
-            logEngagement({ userId: user.uid, eventType: 'favorite_wallpaper', metadata: { wallpaperId: id } });
+            setFavoriteIdByWallpaper(prev => ({ ...prev, [String(id)]: favorite._id }));
+            logEngagement({ userId: user.uid, eventType: 'favorite_wallpaper', metadata: { wallpaperId: String(id) } });
             toast.success('Added to favorites.');
         } catch (error) {
             console.error('Failed to favorite wallpaper:', error);
@@ -465,7 +465,7 @@ export default function ExplorePage() {
                         <WallpaperCard 
                             key={wallpaper.id} 
                             wallpaper={wallpaper}
-                            isLiked={likedIds.has(wallpaper.id)}
+                            isLiked={likedIds.has(String(wallpaper.id))}
                             imageFormat={imageFormat}
                             onOpenModal={openModal}
                             onOpenSaveModal={openSaveModal}

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { X, Share2, Download, Copy, Mail, MessageCircle, Heart, Globe, Link, FolderPlus } from 'lucide-react';
+import { X, Share2, Download, Copy, Mail, MessageCircle, Heart, Globe, Link, FolderPlus, ImageOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/AuthContext';
 import { fetchComments, postComment, fetchFavorites, postFavorite, deleteFavorite, fetchUserCollections, createCollection, updateCollection, logEngagement } from '@/lib/api';
@@ -42,10 +42,12 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
   const [collections, setCollections] = useState([]);
   const [newCollectionName, setNewCollectionName] = useState('');
 
-  const imageUrl = wallpaper?.src?.large || wallpaper?.src?.original || wallpaper?.src?.medium || '';
-  const title = wallpaper?.alt || 'Wallpaper';
-  const photographer = wallpaper?.photographer || 'Unknown Artist';
-  const wallpaperId = wallpaper?.id;
+  const normalizedWallpaper = wallpaper?.metadata || wallpaper;
+  const imageUrl = normalizedWallpaper?.src?.large2x || normalizedWallpaper?.src?.large || normalizedWallpaper?.src?.original || normalizedWallpaper?.src?.medium || normalizedWallpaper?.url || '';
+  const title = normalizedWallpaper?.alt || 'Wallpaper';
+  const photographer = normalizedWallpaper?.photographer || 'Unknown Artist';
+  const wallpaperId = normalizedWallpaper?.id ? String(normalizedWallpaper.id) : normalizedWallpaper?.wallpaperId ? String(normalizedWallpaper.wallpaperId) : '';
+  const canPreview = Boolean(imageUrl);
 
   useEffect(() => {
     const handleEscape = (event) => {
@@ -130,6 +132,11 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
   };
 
   const handleDownload = () => {
+    if (!imageUrl) {
+      toast.error('No downloadable image is available for this wallpaper.');
+      return;
+    }
+
     const filename = `${title.replace(/\s+/g, '-').toLowerCase() || 'wallpaper'}.jpg`;
     const link = document.createElement('a');
     link.href = imageUrl;
@@ -184,7 +191,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
     }
 
     try {
-      const favorite = await postFavorite({ userId: user.uid, wallpaperId, metadata: {} });
+      const favorite = await postFavorite({ userId: user.uid, wallpaperId, metadata: normalizedWallpaper });
       setLiked(true);
       setFavoriteId(favorite._id);
       toast.success('Added to favorites.');
@@ -253,7 +260,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
   };
 
   const saveToCollection = async (name) => {
-    if (!wallpaper) return;
+    if (!normalizedWallpaper || !wallpaperId) return;
 
     const currentCollections = collections.length ? collections : await loadCollections();
     const targetCollection = currentCollections.find((collection) => collection.name === name);
@@ -264,7 +271,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
       return;
     }
 
-    const alreadySaved = targetCollection.wallpapers?.some((item) => item.wallpaperId === wallpaper.id || item.id === wallpaper.id);
+    const alreadySaved = targetCollection.wallpapers?.some((item) => String(item.wallpaperId || item.id) === wallpaperId);
     if (alreadySaved) {
       toast.error(`Already saved to ${name}`);
       closeSavePanel();
@@ -276,13 +283,13 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
         const updatedWallpapers = [
           ...(targetCollection.wallpapers || []),
           {
-            wallpaperId: wallpaper.id,
+            wallpaperId,
             addedAt: new Date().toISOString(),
-            metadata: wallpaper,
+            metadata: normalizedWallpaper,
           },
         ];
         await updateCollection(targetCollection._id, { wallpapers: updatedWallpapers });
-        logEngagement({ userId: user.uid, eventType: 'save_wallpaper', metadata: { wallpaperId: wallpaper.id, collectionName: name } });
+        logEngagement({ userId: user.uid, eventType: 'save_wallpaper', metadata: { wallpaperId, collectionName: name } });
         const refreshed = await fetchUserCollections(user.uid);
         setCollections(refreshed);
         setCollectionNames(refreshed.map((collection) => collection.name));
@@ -299,7 +306,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
       const raw = window.localStorage.getItem('user_collections');
       const vault = raw ? JSON.parse(raw) : {};
       const coll = vault[name] || [];
-      vault[name] = [...coll, wallpaper];
+      vault[name] = [...coll, normalizedWallpaper];
       window.localStorage.setItem('user_collections', JSON.stringify(vault));
       toast.success(`Saved to ${name}`);
     } catch (err) {
@@ -313,7 +320,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
   const handleCreateAndSave = async (e) => {
     e.preventDefault();
     const trimmed = newCollectionName.trim();
-    if (!trimmed || !wallpaper) return;
+    if (!trimmed || !normalizedWallpaper || !wallpaperId) return;
 
     if (collections.some((collection) => collection.name === trimmed)) {
       toast.error('A collection with this name already exists.');
@@ -327,13 +334,13 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
           name: trimmed,
           wallpapers: [
             {
-              wallpaperId: wallpaper.id,
+              wallpaperId,
               addedAt: new Date().toISOString(),
-              metadata: wallpaper,
+              metadata: normalizedWallpaper,
             },
           ],
         });
-        logEngagement({ userId: user.uid, eventType: 'create_collection_and_save', metadata: { wallpaperId: wallpaper.id, collectionName: trimmed } });
+        logEngagement({ userId: user.uid, eventType: 'create_collection_and_save', metadata: { wallpaperId, collectionName: trimmed } });
         setCollections((prev) => [created, ...prev]);
         setCollectionNames((prev) => [created.name, ...prev]);
         setNewCollectionName('');
@@ -353,7 +360,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
         toast.error('A collection with this name already exists.');
         return;
       }
-      vault[trimmed] = [wallpaper];
+      vault[trimmed] = [normalizedWallpaper];
       window.localStorage.setItem('user_collections', JSON.stringify(vault));
       setCollectionNames(Object.keys(vault));
       setNewCollectionName('');
@@ -375,15 +382,23 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
         </button>
 
         <div className="share-preview-area">
-          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <Image 
-              className={`share-preview-img ${selectedImageClass}`} 
-              src={imageUrl} 
-              alt={title} 
-              fill
-              style={{ objectFit: 'contain' }}
-            />
-          </div>
+          {canPreview ? (
+            <div className={`share-preview-frame ${selectedImageClass}`}>
+              <Image
+                className="share-preview-img"
+                src={imageUrl}
+                alt={title}
+                fill
+                sizes="(max-width: 768px) 92vw, 680px"
+                style={{ objectFit: orientation === 'landscape' ? 'cover' : 'contain' }}
+              />
+            </div>
+          ) : (
+            <div className="share-preview-empty">
+              <ImageOff size={34} />
+              <span>Preview unavailable</span>
+            </div>
+          )}
         </div>
 
         <div className="share-header">
