@@ -15,18 +15,18 @@
 */
 .hero {
     position: relative;
-    width: 100%;
-    /* Extra top padding pushes text content down safely below your transparent overlay navbar */
-    padding: 160px 20px 60px;
+    /* Increased top padding to bring text down slightly */
+    margin-top: -90px;
+    padding: 10rem 2rem 6rem;
     text-align: center;
+    /* Added background image behind the hero section with a dark overlay to make text pop */
     background: linear-gradient(135deg, rgba(10, 10, 20, 0.5), rgba(30, 20, 40, 0.6)), 
-                url('/hero-banner.png');
-    background-size: 115% auto; /* Base scale buffer prevents sharp image re-raster edge stuttering */
-    background-position: center top; /* Anchors image asset seamlessly to top browser edge */
+     url('/hero-banner.png');
+    background-size: cover;
+    background-position: center;
     overflow: hidden;
     border-radius: 0 0 30px 30px;
     margin-bottom: 2rem;
-    margin-top: 0; /* Fixed: Removed negative margins which pull banners down on varying viewports */
     animation: moveBackground 10s ease-in-out infinite; 
 }
 
@@ -39,8 +39,8 @@
     bottom: 0;
     z-index: -1;
     background: inherit;
-    background-size: inherit;
-    background-position: inherit;
+    background-size: cover;
+    background-position: center;
     filter: blur(2px);
 }
 
@@ -54,7 +54,6 @@
     margin-bottom: 1rem;
     background: linear-gradient(to right, var(--primary-color, #ff6b6b), #a06bff);
     -webkit-background-clip: text;
-    background-clip: text;
     color: transparent;
     animation: fadeInDown 0.8s ease;
 }
@@ -77,6 +76,7 @@
     justify-content: center;
     gap: 1rem;
     flex-wrap: wrap;
+    /* Pushed categories further down from the welcome text */
     margin-top: 3rem; 
     margin-bottom: 2rem;
     padding: 0 1rem;
@@ -87,26 +87,28 @@
    Glassmorphism effect with blur and semi-transparent background
 */
 .category-pill {
-    padding: 8px 20px;
+   padding: 8px 20px;
     border-radius: 30px;
     border: 1px solid rgba(136, 146, 176, 0.3);
     background-color: transparent;
-    color: inherit; 
+    color: inherit; /* Inherits text color so light/dark mode works */
     cursor: pointer;
     white-space: nowrap;
     font-weight: 500;
     transition: all 0.3s ease;
 }
 
+
 /* Hover and Active states for category pills */
-.category-pill:hover, 
-.category-pill.active {
-    background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
+.category-pill:hover, .category-pill.active {
+   border-color: #a6c1ee;
+   background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
     color: #0f1115 !important;
-    border-color: transparent; /* Seamless gradient blend */
+    border: none;
     font-weight: 600;
     box-shadow: 0 4px 15px rgba(166, 193, 238, 0.4);
 }
+
 
 /* Container pushing images further down */
 .explore-content {
@@ -115,7 +117,7 @@
 
 /* 
    Wallpapers Grid 
-   Standard responsive CSS grid layout for desktop monitors
+   Standard responsive CSS grid layout
 */
 .wallpapers-grid {
     display: grid;
@@ -217,8 +219,8 @@
 }
 
 .wallpaper-btn:hover {
-    background: #ff6b6b; 
-    transform: scale(1.1); 
+    background: #ff6b6b; /* Accent color on hover */
+    transform: scale(1.1); /* Slight pop effect */
 }
 
 /* Keyframe animations for entrance effects */
@@ -233,16 +235,22 @@
 }
 
 @keyframes moveBackground {
-    0% { background-position: center 0%; }
-    50% { background-position: center 20%; }
-    100% { background-position: center 0%; }
+    0% {
+        background-position: center 0%;
+    }
+    50% {
+        background-position: center 20%;
+    }
+    100% {
+        background-position: center 0%;
+    }
 }   
 
 /* ==========================================================================
    Dark Mode Adjustments
    ========================================================================== */
 @media (prefers-color-scheme: dark) {
-    .hero { 
+    .hero-section {
         background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(10, 10, 15, 0.8));
     }
     .category-pill {
@@ -251,9 +259,7 @@
     }
 }
 
-/* ==========================================================================
-   Collection Modal
-   ========================================================================== */
+
 .collection-modal-backdrop {
     position: fixed;
     inset: 0;
@@ -345,53 +351,3 @@
     background: transparent;
     border-color: rgba(255, 255, 255, 0.12);
 }
-
-/* ==========================================================================
-   CRITICAL MOBILE OVERRIDE FORCE BLOCK
-   ========================================================================== */
-@media screen and (max-width: 600px) {
-
-    /* Strict parent class specificity tag stops old desktop method grid mechanics */
-    .home-page .wallpapers-grid, 
-    .wallpapers-grid {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important; /* Explicitly locks exactly 2 images side-by-side */
-        gap: 12px !important;
-        padding: 0 8px !important;
-    }
-
-    /* Fixed: Fullspace upper bleed overrides */
-    .home-page .hero {
-        padding: 130px 16px 50px !important;
-    }
-
-    .home-page .hero::before {
-        background-size: cover !important; 
-    }
-
-    /* Scales down premium typography layout rules */
-    .hero-title {
-        font-size: 2.2rem !important;
-    }
-
-    .hero-subtitle {
-        font-size: 1rem !important;
-        margin-bottom: 1.5rem !important;
-    }
-
-    /* Category slider row flex optimization for smooth horizontal swipe gestures */
-    .home-page .categories-container {
-        display: flex !important;
-        justify-content: flex-start !important;
-        overflow-x: auto !important;
-        scrollbar-width: none !important;
-        margin-top: 1.5rem !important;
-        margin-bottom: 1rem !important;
-        gap: 0.5rem !important;
-        padding: 10px 4px !important;
-    }
-    
-    .home-page .categories-container::-webkit-scrollbar {
-display: none !important;}.category-pill {padding: 6px 14px !important;font-size: 0.85rem !important;}/* Condenses hover overlays so text is instantly readable on tap displays */.wallpaper-overlay {padding: 10px 8px !important;opacity: 1 !important;transform: translateY(0) !important;}.wallpaper-info h3 {font-size: 0.9rem !important;}.wallpaper-info p {font-size: 0.8rem !important;}/* Scales action items cleanly for standard thumb boundaries */.wallpaper-btn {width: 38px !important;height: 38px !important;}}
-
-
