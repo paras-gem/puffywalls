@@ -56,19 +56,19 @@ export default function LoginPage() {
     const handleGoogleLogin = async (event) => {
         event.preventDefault();
         const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({
+            client_id: process.env.NEXT_PUBLIC_FIREBASE_GOOGLE_CLIENT_ID
+        });
         setError('');
         setIsGoogleLoading(true);
-        console.log('Firebase auth config:', auth.app.options);
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             toast.success(`Welcome back, ${user.displayName || 'User'}!`);
             router.push('/');
-        } catch (error) {
-            toast.error('Google Login Failed: ' + error.message);
-            console.log('API Key:', process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
-            console.log('Auth Domain:', process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN);
-            console.log('Project ID:', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);    
+        } catch (err) {
+            console.error('Google Login Failed:', err.code, err.message);
+            toast.error('Google Login Failed: ' + err.message);
         } finally {
             setIsGoogleLoading(false);
         }
