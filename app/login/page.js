@@ -53,12 +53,20 @@ export default function LoginPage() {
         }
     };
 
-    const handleGoogleLogin = async (event) => {
-        event.preventDefault();
-        const provider = new GoogleAuthProvider();
+    const handleGoogleLogin = async () => {
         setError('');
         setIsGoogleLoading(true);
         try {
+            const provider = new GoogleAuthProvider();
+            const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+            // Enforce production client configuration linkage if setup in Vercel env
+            if (clientId) {
+                provider.setCustomParameters({
+                    client_id: clientId
+                });
+            }
+
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             toast.success(`Welcome back, ${user.displayName || 'User'}!`);
@@ -117,6 +125,7 @@ export default function LoginPage() {
                     </button>
                 </form>
 
+                {/* Kept outside the HTML form element rule paths to isolate handshakes */}
                 <button className="google-btn" type="button" onClick={handleGoogleLogin} disabled={isLoading || isGoogleLoading}>
                     <span className="google-g">G</span> {isGoogleLoading ? 'Connecting...' : 'Continue with Google'}
                 </button>
