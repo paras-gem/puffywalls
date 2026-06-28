@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { X, Share2, Download, Copy, Mail, MessageCircle, Heart, Globe, Link, FolderPlus, ImageOff } from 'lucide-react';
+import { X, Share2, Download, Copy, Mail, MessageCircle, Heart, Globe, Link, FolderPlus, ImageOff, ThumbsDown, Flag, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/AuthContext';
-import { fetchComments, postComment, fetchFavorites, postFavorite, deleteFavorite, fetchUserCollections, createCollection, updateCollection, logEngagement } from '@/lib/api';
+import { fetchComments, postComment, fetchFavorites, postFavorite, deleteFavorite, fetchUserCollections, createCollection, updateCollection, logEngagement, fetchWallpaperStats, postFeedback } from '@/lib/api';
 import './ShareModal.css';
 
 const socialPlatforms = [
@@ -27,14 +27,17 @@ const socialPlatforms = [
 ];
 
 export default function ShareModal({ wallpaper, onClose, isClosing }) {
-  // 🟢 FIXED: Lifted authentication hook instantiation to the top of the scope to safely service lower functions
   const { user } = useAuth();
 
   const [orientation, setOrientation] = useState('original');
   const [commentText, setCommentText] = useState('');
+  const [rating, setRating] = useState(0);
   const [comments, setComments] = useState([]);
   const [liked, setLiked] = useState(false);
   const [favoriteId, setFavoriteId] = useState(null);
+  
+  // Global stats state
+  const [stats, setStats] = useState({ likes: 0, dislikes: 0, rating: 0, totalRatings: 0 });
 
   // Save to collection panel tracking
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -68,18 +71,24 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
   useEffect(() => {
     if (!wallpaperId) return;
 
-    const loadComments = async () => {
+    const loadData = async () => {
       try {
-        const serverComments = await fetchComments(wallpaperId);
+        const [serverComments, serverStats] = await Promise.all([
+          fetchComments(wallpaperId),
+          fetchWallpaperStats(wallpaperId)
+        ]);
         if (Array.isArray(serverComments)) {
           setComments(serverComments);
         }
+        if (serverStats) {
+          setStats(serverStats);
+        }
       } catch (error) {
-        console.warn('Unable to load comments from server.', error);
+        console.warn('Unable to load data from server.', error);
       }
     };
 
-    loadComments();
+    loadData();
   }, [wallpaperId]);
 
   useEffect(() => {
@@ -157,11 +166,17 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
         userId: user?.uid || null,
         authorName: user?.displayName || 'Guest',
         text: trimmedComment,
+        rating: rating,
       });
 
       setComments((prev) => [postedComment, ...prev]);
       setCommentText('');
+      setRating(0);
       toast.success('Comment posted successfully!');
+      
+      // Refresh stats to include new rating
+      const updatedStats = await fetchWallpaperStats(wallpaperId);
+      setStats(updatedStats);
     } catch (error) {
       console.error('Comment submit failed:', error);
       toast.error('Unable to post your comment right now.');
@@ -182,6 +197,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
         await deleteFavorite({ favoriteId, userId: user.uid, wallpaperId });
         setLiked(false);
         setFavoriteId(null);
+        setStats(prev => ({ ...prev, likes: Math.max(0, prev.likes - 1) }));
         toast.success('Removed from favorites.');
       } catch (error) {
         console.error('Failed to remove favorite:', error);
@@ -194,10 +210,45 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
       const favorite = await postFavorite({ userId: user.uid, wallpaperId, metadata: normalizedWallpaper });
       setLiked(true);
       setFavoriteId(favorite._id);
+      setStats(prev => ({ ...prev, likes: prev.likes + 1 }));
       toast.success('Added to favorites.');
     } catch (error) {
       console.error('Failed to favorite wallpaper:', error);
       toast.error('Could not add to favorites.');
+    }
+  };
+
+  const handleDislike = async () => {
+    if (!wallpaperId) return;
+    if (!user) {
+      toast.error('Please sign in to dislike.');
+      return;
+    }
+    
+    try {
+      await logEngagement({ userId: user.uid, eventType: 'dislike', metadata: { wallpaperId } });
+      setStats(prev => ({ ...prev, dislikes: prev.dislikes + 1 }));
+      toast.success('Feedback recorded.');
+    } catch (error) {
+      console.error('Failed to dislike:', error);
+      toast.error('Could not record feedback.');
+    }
+  };
+
+  const handleReport = async () => {
+    if (!wallpaperId) return;
+    
+    try {
+      await postFeedback({ 
+        userId: user?.uid || null, 
+        email: user?.email || '', 
+        category: 'report', 
+        message: `Reported wallpaper ID: ${wallpaperId}` 
+      });
+      toast.success('Wallpaper reported. Our team will review it.');
+    } catch (error) {
+      console.error('Failed to report:', error);
+      toast.error('Could not submit report.');
     }
   };
 
@@ -405,6 +456,17 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
           <div className="share-title-group">
             <h2>{title}</h2>
             <p className="share-photographer">Photo by {photographer}</p>
+            <div className="share-global-stats" style={{ display: 'flex', gap: '12px', marginTop: '8px', fontSize: '0.85rem', color: '#a1a1aa' }}>
+              <span title="Total Likes" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Heart size={14} color="#ff4757" /> {stats.likes}
+              </span>
+              <span title="Average Rating" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Star size={14} color="#eab308" /> {stats.rating} ({stats.totalRatings})
+              </span>
+              <span title="Total Dislikes" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <ThumbsDown size={14} color="#6b7280" /> {stats.dislikes}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -431,14 +493,18 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
           <button className="action-btn" type="button" onClick={() => openSavePanel()}>
             <FolderPlus size={16} /> Save
           </button>
-          <button className="action-btn comments-active" type="button" onClick={() => document.getElementById('share-comment-input')?.focus()}>
-            <MessageCircle size={18} /> Comment
-          </button>
           <button className="action-btn" type="button" onClick={handleCopyLink}>
             <Copy size={18} /> Copy Link
           </button>
           <button className="action-btn download-btn" type="button" onClick={handleDownload}>
             <Download size={18} /> Download
+          </button>
+          
+          <button className="action-btn" type="button" onClick={handleDislike}>
+            <ThumbsDown size={18} /> Dislike
+          </button>
+          <button className="action-btn report-btn" type="button" onClick={handleReport} style={{ color: '#ef4444' }}>
+            <Flag size={18} /> Report
           </button>
         </div>
 
@@ -458,7 +524,7 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
 
         <div className="share-comments-section">
           <p className="share-section-label">Comments ({comments.length})</p>
-          <form className="comment-form" onSubmit={handleCommentSubmit}>
+          <form className="comment-form" onSubmit={handleCommentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div className="comment-input-wrapper">
               <input
                 id="share-comment-input"
@@ -473,16 +539,38 @@ export default function ShareModal({ wallpaper, onClose, isClosing }) {
                 </button>
               )}
             </div>
-            <button type="submit" className="post-comment-btn" disabled={!commentText.trim()}>
-              Post
-            </button>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="rating-selector" style={{ display: 'flex', gap: '4px' }}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button 
+                    key={star} 
+                    type="button" 
+                    onClick={() => setRating(star)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  >
+                    <Star size={18} color={star <= rating ? "#eab308" : "#4b5563"} fill={star <= rating ? "#eab308" : "none"} />
+                  </button>
+                ))}
+              </div>
+              <button type="submit" className="post-comment-btn" disabled={!commentText.trim()}>
+                Post
+              </button>
+            </div>
           </form>
 
           <div className="comments-list">
             {comments.length > 0 ? (
               comments.map((comment) => (
                 <div key={comment._id} className="comment-item">
-                  <div className="comment-author">{comment.authorName}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div className="comment-author">{comment.authorName}</div>
+                    {comment.rating > 0 && (
+                      <div className="comment-rating" style={{ display: 'flex', alignItems: 'center', gap: '2px', color: '#eab308', fontSize: '0.8rem' }}>
+                        <Star size={12} fill="#eab308" /> {comment.rating}
+                      </div>
+                    )}
+                  </div>
                   <div className="comment-text">{comment.text}</div>
                   <div className="comment-date">{new Date(comment.createdAt).toLocaleDateString()}</div>
                 </div>

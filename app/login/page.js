@@ -1,7 +1,8 @@
 'use client'
 
 import { auth } from '@/lib/firebase';
-import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useAuth } from '@/lib/AuthContext'; // FIX: Bring in our centralized context hook
 import './LoginPage.css';
 import { useState } from 'react';
 import { User, Lock, Eye, LogIn } from 'lucide-react';
@@ -16,6 +17,9 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const router = useRouter();
+
+    // FIX: Extract our updated custom scoped sign-in trigger method
+    const { signInWithGoogle } = useAuth();
 
     const handleEmailLogin = async (event) => {
         event.preventDefault();
@@ -56,21 +60,10 @@ export default function LoginPage() {
     const handleGoogleLogin = async () => {
         setError('');
         setIsGoogleLoading(true);
-        
-        console.log("Checking if Client ID is bundled:", !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 
         try {
-            const provider = new GoogleAuthProvider();
-            
-            // Injecting variable inline keeps the Next.js compiler compiler stable
-            if (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
-                provider.setCustomParameters({
-                    client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-                });
-            }
-
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
+            // FIX: Call our context workflow to enforce the Drive scope popup permissions
+            const user = await signInWithGoogle();
             toast.success(`Welcome back, ${user.displayName || 'User'}!`);
             router.push('/');
         } catch (err) {

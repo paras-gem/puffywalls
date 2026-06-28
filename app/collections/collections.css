@@ -126,7 +126,7 @@
   gap: 2rem;
 }
 
-/* FIX: overflow:visible so folder-manage-btn is NOT clipped */
+/* overflow:visible so folder action buttons are NOT clipped by card bounds */
 .folder-card {
   position: relative;
   background-color: #161920;
@@ -134,7 +134,7 @@
   border-radius: 16px;
   padding: 1rem;
   cursor: pointer;
-  overflow: visible; /* was missing — edit button was being clipped */
+  overflow: visible;
   transition: border-color 0.2s, transform 0.2s;
 }
 
@@ -143,14 +143,14 @@
   transform: translateY(-4px);
 }
 
-/* Mosaic 2x2 preview grid — overflow:hidden here clips images only */
+/* Mosaic 2x2 preview grid — overflow:hidden clips images only */
 .folder-preview-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
   aspect-ratio: 1 / 1;
   border-radius: 10px;
-  overflow: hidden; /* clips images only, not the edit button */
+  overflow: hidden;
   margin-bottom: 1rem;
   background-color: #0f1115;
 }
@@ -173,8 +173,8 @@
   font-weight: 600;
   color: #f8fafc;
   margin: 0 0 0.25rem 0;
-  /* leave room for the manage button */
-  padding-right: 2.5rem;
+  /* leave room for the action button group */
+  padding-right: 5.5rem;
 }
 
 .folder-info p {
@@ -183,43 +183,80 @@
   margin: 0;
 }
 
-/* FIX: always visible edit button with dark background for contrast */
-.folder-manage-btn {
+/* ── FOLDER ACTION BUTTONS (Drive + Edit) ──────────────────────────────────
+   A flex row anchored to the top-right of every folder card.
+   overflow:visible on .folder-card means these sit outside the card border. */
+.folder-action-btns {
   position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  /* FIX: dark bg so white icon always contrasts against any wallpaper */
-  background-color: rgba(0, 0, 0, 0.75);
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
-  /* FIX: bigger size for easier clicking and better visibility */
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  top: 1.1rem;
+  right: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  z-index: 20;
+}
+
+/* Shared base for both icon buttons */
+.folder-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background-color: rgba(0, 0, 0, 0.72);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 20; /* sits above card content */
-  /* FIX: always visible, not just on hover */
-  opacity: 1;
-  transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+  transition: background-color 0.18s, border-color 0.18s, transform 0.18s;
 }
 
+/* Edit button — white fill on hover, icon flips dark */
 .folder-manage-btn:hover {
   background-color: #ffffff;
   border-color: #ffffff;
   transform: scale(1.08);
 }
 
-/* FIX: icon color flips on hover for contrast */
-.folder-manage-btn svg {
-  color: #ffffff;
-  stroke: #ffffff;
-}
-
 .folder-manage-btn:hover svg {
   stroke: #0f1115 !important;
   color: #0f1115 !important;
+}
+
+/* ── Drive Button — Google-blue accent on hover ───────────────────────────*/
+.folder-drive-btn:hover {
+  background-color: #4285f4;
+  border-color: #4285f4;
+  transform: scale(1.08);
+}
+
+.folder-drive-btn:hover svg {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* While upload is running: muted + pulsing border, no click */
+.folder-drive-btn.is-saving {
+  background-color: rgba(66, 133, 244, 0.15);
+  border-color: rgba(66, 133, 244, 0.5);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.folder-drive-btn.is-saving:hover {
+  background-color: rgba(66, 133, 244, 0.15);
+  border-color: rgba(66, 133, 244, 0.5);
+  transform: none;
+}
+
+/* Spin animation for the Loader2 icon */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.drive-btn-spinner {
+  animation: spin 0.9s linear infinite;
+  stroke: #4285f4 !important;
+  color: #4285f4 !important;
 }
 
 /* --- Assets Inner Folder View --- */
@@ -267,7 +304,6 @@
   margin: 0;
 }
 
-/* FIX: improved search input — bigger, better placeholder */
 .assets-search-wrapper {
   position: relative;
   min-width: 300px;
@@ -287,7 +323,6 @@
   background-color: #161920;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  /* FIX: taller input and bigger text for readability */
   padding: 0.75rem 1rem 0.75rem 2.75rem;
   color: #ffffff;
   outline: none;
@@ -311,17 +346,17 @@
   gap: 1.5rem;
 }
 
-/* FIX: overflow:visible so overlay is not clipped */
+/* overflow:visible so overlay is not clipped */
 .asset-card {
   position: relative;
   aspect-ratio: 3 / 4;
   background-color: #161920;
   border-radius: 14px;
-  overflow: visible; /* was hidden — clipped the hover overlay */
+  overflow: visible;
   cursor: pointer;
 }
 
-/* FIX: image wrapper clips image only, not the overlay */
+/* image wrapper clips image only, not the overlay */
 .asset-image-wrapper {
   position: absolute;
   inset: 0;
@@ -350,7 +385,7 @@
   align-items: flex-end;
   justify-content: center;
   padding: 1.25rem;
-  z-index: 2; /* sits above image wrapper */
+  z-index: 2;
 }
 
 .asset-card:hover .asset-overlay {
@@ -368,13 +403,10 @@
   transform: translateY(0);
 }
 
-/* FIX: bigger buttons with dark bg so icons are always clearly visible */
 .asset-btn {
-  /* FIX: increased size from 40px to 48px */
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  /* FIX: dark semi-transparent bg so white icons always contrast */
   background-color: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(8px);
   border: 1.5px solid rgba(255, 255, 255, 0.3);
@@ -385,7 +417,6 @@
   transition: background-color 0.2s, transform 0.15s, border-color 0.2s;
 }
 
-/* FIX: icon always white so it's visible against dark bg */
 .asset-btn svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
@@ -397,7 +428,6 @@
   transform: scale(1.08);
 }
 
-/* FIX: icon flips to dark on hover for contrast */
 .asset-btn:hover svg {
   stroke: #0f1115 !important;
   color: #0f1115 !important;
@@ -556,22 +586,20 @@
   .btn-delete-full             { margin-right: 0; justify-content: center; }
   .assets-grid                 { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
   .asset-btn                   { width: 42px; height: 42px; }
+  .folder-icon-btn             { width: 32px; height: 32px; }
 }
 
 /* ─────────────────────────────────────────────
    MOVE TO FOLDER POPOVER
-   Appears above the move button when clicked
    ───────────────────────────────────────────── */
 
-/* Wrapper gives the popover a positioning anchor */
 .move-btn-wrapper {
     position: relative;
 }
 
-/* Popover box — floats above the card */
 .move-popover {
     position: absolute;
-    bottom: calc(100% + 10px); /* sits above the button */
+    bottom: calc(100% + 10px);
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
@@ -600,7 +628,6 @@
     padding: 8px 0;
 }
 
-/* Each folder option in the move list */
 .move-target-btn {
     display: flex;
     align-items: center;
