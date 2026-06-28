@@ -1,4 +1,6 @@
-/* app/explore/ExplorePage.css */
+/* ==========================================================================
+   app/explore/ExplorePage.css
+   ========================================================================== */
 
 .explore-page-container {
     min-height: 100vh;
@@ -7,18 +9,18 @@
     font-family: 'Inter', sans-serif;
 }
 
-/* =========================================
+/* ==========================================================================
    HERO SECTION WITH BACKGROUND IMAGE
-   ========================================= */
+   ========================================================================== */
 .explore-hero {
     position: relative;
     width: 100%;
-    /* We add padding top to account for the navbar and negative margin */
-    padding: 140px 20px 60px; 
+    /* Extra top padding pushes content down safely below your transparent overlay navbar */
+    padding: 160px 20px 60px; 
     text-align: center;
     color: #ffffff; /* Always keep hero text white for contrast */
     overflow: hidden; /* Contains the animated background */
-    margin-top: -88px; /* Pulls the hero up behind the navbar */
+    margin-top: 0; /* Fixed: Removed negative margin-top which breaks mobile header spaces */
     z-index: 1; /* Creates a stacking context to trap pseudo-elements */
 }
 
@@ -26,21 +28,22 @@
 .explore-hero::before {
     content: '';
     position: absolute;
-    top: 0;
+    top: 0; /* Flushes background against the very top edge of the browser window */
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop');
-    background-size: cover;
-    background-position: center;
+    /* Dynamic placeholder or updated link to your uploaded abstract wave asset */
+    background-image: url('/path-to-your-uploaded-gradient-image.png');
+    background-size: 115% auto; /* Fixed: Base scale buffer prevents sharp image re-raster edge stuttering */
+    background-position: center top;
     z-index: -1; /* Goes behind overlay and content */
-    animation: heroZoom 8s infinite alternate ease-in-out;
+    animation: heroZoom 12s infinite alternate ease-in-out; /* Premium slowed calculation rhythm */
     will-change: transform;
 }
 
 @keyframes heroZoom {
     0% { transform: scale(1); }
-    100% { transform: scale(1.2); }
+    100% { transform: scale(1.06); } /* Subtle scaling prevents mobile performance lag */
 }
 
 /* Adds a dark gradient over the image so text is readable */
@@ -90,9 +93,9 @@
     }
 }
 
-/* =========================================
+/* ==========================================================================
    CATEGORIES ROW
-   ========================================= */
+   ========================================================================== */
 .categories-container {
     display: flex;
     gap: 12px;
@@ -125,14 +128,14 @@
 .category-pill.active {
     background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
     color: #0f1115 !important;
-    border: none;
+    border: 1px solid transparent;
     font-weight: 600;
     box-shadow: 0 4px 15px rgba(166, 193, 238, 0.4);
 }
 
-/* =========================================
+/* ==========================================================================
    EXPLORE CONTENT (Grid)
-   ========================================= */
+   ========================================================================== */
 .explore-content {
     padding: 0 5% 60px;
 }
@@ -146,6 +149,7 @@
 .query-title span {
     background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -267,8 +271,6 @@
     min-width: 44px;
 }
 
-
-
 .wallpaper-btn {
     background: rgba(255,255,255,0.2);
     backdrop-filter: blur(5px);
@@ -288,6 +290,9 @@
     background: #ff69b4; /* highlight color */
 }
 
+/* ==========================================================================
+   COLLECTION MODAL DESIGN SYSTEM
+   ========================================================================== */
 .collection-modal-backdrop {
     position: fixed;
     inset: 0;
@@ -360,7 +365,7 @@
     width: 100%;
     padding: 14px 16px;
     border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.12); /* Restored the broken snippet cleanly */
     background: rgba(255, 255, 255, 0.05);
     color: #fff;
 }
@@ -375,52 +380,19 @@
     border: none;
 }
 
-.collection-cancel-btn {
-    background: transparent;
-    border-color: rgba(255, 255, 255, 0.12);
-}
-
-@media (max-width: 700px) {
-    .wallpaper-actions {
-        gap: 0.35rem;
-    }
-    .wallpaper-btn {
-        width: 44px;
-        height: 44px;
-    }
-
-    /* =========================================
-   MOBILE RESPONSIVE ADJUSTMENTS
-   ========================================= */
+/* ==========================================================================
+   UNIFIED MOBILE RESPONSIVE MEDIA QUERIES
+   ========================================================================== */
 @media (max-width: 600px) {
-    /* Changes grid structure to show exactly 2 items side-by-side */
-    .wallpaper-grid {
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 12px; /* Thinner spacing so elements maximize screen size */
-        padding: 0 12px;
-    }
-
-    /* Shrinks the hero text sizing to prevent wrapping overlap issues */
-    .explore-hero-content h1 {
-        font-size: 2rem;
-    }
-
-    .explore-hero-content p {
-        font-size: 1rem;
+    /* Fullspace upper bleed overrides */
+    .explore-hero {
+        padding: 130px 16px 50px; 
     }
     
-    /* Slightly shrinks card internal padding for small screens */
-    .wallpaper-overlay {
-        padding: 10px;
+    .explore-hero::before {
+        background-size: cover; /* Guarantees total crop coverage on phone viewports */
     }
 
-    .wallpaper-info h3 {
-        font-size: 0.9rem;
-    }
-
-    .photographer-name {
-        font-size: 0.8rem;
-    }
-}
-
-}
+    /* Fixed: Forces exactly 2 images in a horizontal grid row */
+    .wallpaper-grid {
+grid-template-columns: repeat(2, 1fr);gap: 12px;padding: 0 4px;}/* Categories swipe optimization for touchscreen gestures */.categories-container {justify-content: flex-start;padding: 15px 12px;}/* Responsive scaling to match smaller device constraints */.explore-hero-content h1 {font-size: 2.1rem;}.explore-hero-content p {font-size: 1rem;}.wallpaper-overlay {padding: 12px 8px;}.wallpaper-info h3 {font-size: 0.9rem;}.photographer-name {font-size: 0.8rem;}.wallpaper-btn {width: 38px;height: 38px;}}

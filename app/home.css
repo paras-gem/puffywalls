@@ -15,16 +15,18 @@
 */
 .hero {
     position: relative;
-    margin-top: -90px;
-    padding: 10rem 2rem 6rem;
+    width: 100%;
+    /* Extra top padding pushes text content down safely below your transparent overlay navbar */
+    padding: 160px 20px 60px;
     text-align: center;
     background: linear-gradient(135deg, rgba(10, 10, 20, 0.5), rgba(30, 20, 40, 0.6)), 
                 url('/hero-banner.png');
-    background-size: 110% auto; /* Scaled slightly to allow smooth moveBackground animation */
-    background-position: center top;
+    background-size: 115% auto; /* Base scale buffer prevents sharp image re-raster edge stuttering */
+    background-position: center top; /* Anchors image asset seamlessly to top browser edge */
     overflow: hidden;
     border-radius: 0 0 30px 30px;
     margin-bottom: 2rem;
+    margin-top: 0; /* Fixed: Removed negative margins which pull banners down on varying viewports */
     animation: moveBackground 10s ease-in-out infinite; 
 }
 
@@ -113,7 +115,7 @@
 
 /* 
    Wallpapers Grid 
-   Standard responsive CSS grid layout
+   Standard responsive CSS grid layout for desktop monitors
 */
 .wallpapers-grid {
     display: grid;
@@ -240,7 +242,7 @@
    Dark Mode Adjustments
    ========================================================================== */
 @media (prefers-color-scheme: dark) {
-    .hero { /* Fixed selector class name mismatch */
+    .hero { 
         background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(10, 10, 15, 0.8));
     }
     .category-pill {
@@ -341,5 +343,55 @@
 
 .collection-cancel-btn {
     background: transparent;
-    border-color: rgba(255, 255, 255, 0.12); /* Completed the broken syntax */
+    border-color: rgba(255, 255, 255, 0.12);
 }
+
+/* ==========================================================================
+   CRITICAL MOBILE OVERRIDE FORCE BLOCK
+   ========================================================================== */
+@media screen and (max-width: 600px) {
+
+    /* Strict parent class specificity tag stops old desktop method grid mechanics */
+    .home-page .wallpapers-grid, 
+    .wallpapers-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important; /* Explicitly locks exactly 2 images side-by-side */
+        gap: 12px !important;
+        padding: 0 8px !important;
+    }
+
+    /* Fixed: Fullspace upper bleed overrides */
+    .home-page .hero {
+        padding: 130px 16px 50px !important;
+    }
+
+    .home-page .hero::before {
+        background-size: cover !important; 
+    }
+
+    /* Scales down premium typography layout rules */
+    .hero-title {
+        font-size: 2.2rem !important;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    /* Category slider row flex optimization for smooth horizontal swipe gestures */
+    .home-page .categories-container {
+        display: flex !important;
+        justify-content: flex-start !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        margin-top: 1.5rem !important;
+        margin-bottom: 1rem !important;
+        gap: 0.5rem !important;
+        padding: 10px 4px !important;
+    }
+    
+    .home-page .categories-container::-webkit-scrollbar {
+display: none !important;}.category-pill {padding: 6px 14px !important;font-size: 0.85rem !important;}/* Condenses hover overlays so text is instantly readable on tap displays */.wallpaper-overlay {padding: 10px 8px !important;opacity: 1 !important;transform: translateY(0) !important;}.wallpaper-info h3 {font-size: 0.9rem !important;}.wallpaper-info p {font-size: 0.8rem !important;}/* Scales action items cleanly for standard thumb boundaries */.wallpaper-btn {width: 38px !important;height: 38px !important;}}
+
+
