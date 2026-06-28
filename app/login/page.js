@@ -65,7 +65,6 @@ export default function LoginPage() {
             toast.success(`Welcome back, ${user.displayName || 'User'}!`);
             router.push('/');
         } catch (error) {
-            console.error('Google Login Failed: ', error.message);
             toast.error('Google Login Failed: ' + error.message);
             console.log('API Key:', process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
             console.log('Auth Domain:', process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN);
