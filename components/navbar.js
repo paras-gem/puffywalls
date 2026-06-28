@@ -1,39 +1,32 @@
-
-
 'use client';
 
 import { useRouter } from "next/navigation";
 import DarkModeToggle from "./DarkModeToggle";
 import LoginButton from "./LoginButton";
 
-
 export default function Navbar() {
-
     const router = useRouter();
 
     return (
-
         <div className="glassmorphism">
+            {/* LEFT: App logo */}
+            <h1 className="nav-logo" onClick={() => router.push("/")} style={{ cursor: 'pointer' }}>
+                PuffyWalls
+            </h1>
 
-            {/* LEFT: App logo — styled via .nav-logo in globals.css
-                Uses a gradient text effect to match the app's premium look */}
-            <h1 className="nav-logo">PuffyWalls</h1>
-            <button onClick={() => router.push("/")}>Home</button>
-            <button onClick={() => router.push("/explore")}>Explore</button>
-            <button onClick={() => router.push("/trending")}>Trending</button>
-            <button onClick={() => router.push("/about")}>About</button>
+            {/* CENTER: Navigation Links grouped together */}
+            <div className="nav-links">
+                <button onClick={() => router.push("/")}>Home</button>
+                <button onClick={() => router.push("/explore")}>Explore</button>
+                <button onClick={() => router.push("/trending")}>Trending</button>
+                <button onClick={() => router.push("/about")}>About</button>
+            </div>
 
-
-            {/* RIGHT: Action buttons grouped in .nav-actions flex container
-                DarkModeToggle  — toggles light/dark theme via next-themes
-                LoginButton     — navigates to /login page on click
-                Kept here so they sit flush inside the glass bar */}
+            {/* RIGHT: Action buttons */}
             <div className="nav-actions">
-
                 <DarkModeToggle />
                 <LoginButton />
             </div>
-
         </div>
     );
 }
