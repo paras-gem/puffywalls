@@ -58,6 +58,7 @@ export default function LoginPage() {
         const provider = new GoogleAuthProvider();
         setError('');
         setIsGoogleLoading(true);
+        console.log('Firebase auth config:', auth.app.options);
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
