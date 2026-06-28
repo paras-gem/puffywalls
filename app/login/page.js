@@ -1,7 +1,7 @@
 'use client'
 
 import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 import './LoginPage.css';
 import { useState } from 'react';
 import { User, Lock, Eye, LogIn } from 'lucide-react';
@@ -56,13 +56,16 @@ export default function LoginPage() {
     const handleGoogleLogin = async () => {
         setError('');
         setIsGoogleLoading(true);
+        
+        console.log("Checking if Client ID is bundled:", !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+
         try {
             const provider = new GoogleAuthProvider();
-            const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-
-            if (clientId) {
+            
+            // Injecting variable inline keeps the Next.js compiler compiler stable
+            if (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
                 provider.setCustomParameters({
-                    client_id: clientId
+                    client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
                 });
             }
 
@@ -71,9 +74,8 @@ export default function LoginPage() {
             toast.success(`Welcome back, ${user.displayName || 'User'}!`);
             router.push('/');
         } catch (err) {
-            console.error('Error code:', err.code);
-            console.error('Error message:', err.message);
-            toast.error('Google Login Failed: ' + err.code);
+            console.error("Google Auth Failure Details:", err);
+            toast.error(err.message || 'Google Sign-In failed.');
         } finally {
             setIsGoogleLoading(false);
         }
