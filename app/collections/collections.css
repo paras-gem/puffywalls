@@ -1,898 +1,623 @@
-/* =============================================================================
-   COLLECTIONS PAGE — PuffyWalls
-   ============================================================================= */
+/* src/app/collections/collections.css */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-/* ─────────────────────────────────────────────
-   PAGE WRAPPER & ANIMATING BACKGROUND CANVAS
-   ───────────────────────────────────────────── */
 .collections-page {
-    position: relative;
-    min-height: 100vh;
-    width: 100%;
-    font-family: 'Inter', sans-serif;
-    padding-bottom: 80px;
-    overflow-x: hidden;
-    z-index: 1;
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background-color: #0f1115;
+  color: #ffffff;
+  overflow-x: hidden;
 }
 
+/* --- Fullscreen Backdrops --- */
 .fullscreen-bg-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: -2;
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    pointer-events: none;
-    transform: scale(1.05);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  filter: blur(40px) saturate(1.4);
+  opacity: 0.15;
+  z-index: 0;
+  pointer-events: none;
+  transform: scale(1.1);
 }
 
 .fullscreen-bg-canvas.gradient-only {
-    background: linear-gradient(-45deg, #0b0d19, #161233, #071220, #110922);
-    background-size: 400% 400%;
-    animation: dynamicGradientFlow 18s ease infinite;
-}
-
-.fullscreen-bg-canvas.has-image {
-    animation: cinematicPanZoom 32s ease-in-out infinite alternate;
+  background: radial-gradient(circle at top right, #ec489920, #8b5cf610, transparent);
 }
 
 .fullscreen-bg-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: -1;
-    background: radial-gradient(circle at center, rgba(10, 12, 18, 0.4) 0%, rgba(7, 8, 12, 0.88) 100%);
-    backdrop-filter: blur(40px) saturate(140%);
-    -webkit-backdrop-filter: blur(40px) saturate(140%);
-    pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to bottom, transparent, #0f1115 80%);
+  z-index: 1;
+  pointer-events: none;
 }
 
-/* ─────────────────────────────────────────────
-   HERO SECTION
-   ───────────────────────────────────────────── */
+/* --- Layout Content Container --- */
+.collections-content {
+  position: relative;
+  z-index: 10;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem 2rem;
+}
+
+/* --- Hero Section --- */
 .collections-hero {
-    position: relative;
-    width: 100%;
-    padding: 120px 24px 50px;
-    text-align: center;
-    color: #ffffff;
-    background: transparent !important;
-    margin-top: -88px;
-    z-index: 1;
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 6rem 1rem 3rem 1rem;
 }
 
-.collections-hero-content {
-    position: relative;
-    z-index: 1;
-    max-width: 700px;
-    margin: 0 auto;
-}
-
-.collections-hero-content h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 0.6rem;
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+.collections-hero h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  margin-bottom: 0.75rem;
 }
 
 .collections-gradient {
-    background: linear-gradient(90deg, #fbc2eb, #a6c1ee);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.collections-hero-content p {
-    font-size: 1.05rem;
-    color: #cbd5e1;
-    margin-bottom: 2rem;
+.collections-hero p {
+  color: #94a3b8;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
 }
 
 .btn-new-collection {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border-radius: 50px;
-    border: none;
-    background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
-    color: #0f1115 !important;
-    font-weight: 700;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    box-shadow: 0 6px 24px rgba(166, 193, 238, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #ffffff;
+  color: #0f1115;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .btn-new-collection:hover {
-    transform: translateY(-3px) scale(1.04);
-    box-shadow: 0 10px 32px rgba(166, 193, 238, 0.5);
-    color: #0f1115 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(255, 255, 255, 0.2);
 }
 
-/* ─────────────────────────────────────────────
-   STATS BAR
-   ───────────────────────────────────────────── */
+/* --- Stats Bar --- */
 .collections-stats-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 5%;
-    border-bottom: 1px solid rgba(136, 146, 176, 0.12);
-    font-size: 0.9rem;
-    opacity: 0.85;
-    color: #fff;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-bottom: 4rem;
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.collections-stat {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.collections-stat span {
+  color: #64748b;
+  font-size: 0.95rem;
 }
 
 .collections-stat strong {
-    background: linear-gradient(90deg, #fbc2eb, #a6c1ee);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-weight: 700;
+  color: #f1f5f9;
+  font-weight: 500;
+  margin-left: 0.25rem;
 }
 
-/* ─────────────────────────────────────────────
-   MAIN CONTENT AREA
-   ───────────────────────────────────────────── */
-.collections-content {
-    padding: 36px 5% 0;
-    color: #fff;
-}
-
-.section-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.section-title span {
-    background: linear-gradient(90deg, #fbc2eb, #a6c1ee);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* ─────────────────────────────────────────────
-   COLLECTIONS FOLDER GRID (old card style kept for reference)
-   ───────────────────────────────────────────── */
-.collections-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 22px;
-    margin-bottom: 48px;
-}
-
-.collection-card {
-    border-radius: 20px;
-    overflow: hidden;
-    cursor: pointer;
-    position: relative;
-    background: rgba(15, 12, 32, 0.4);
-    border: 1px solid rgba(136, 146, 176, 0.15);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-    animation: collectionFadeIn 0.5s ease-out forwards;
-    opacity: 0;
-    transform: translateY(12px);
-}
-
-.collection-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
-    border-color: rgba(251, 194, 235, 0.4);
-}
-
-.collection-preview {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    height: 180px;
-    gap: 2px;
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.collection-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.4s ease;
-}
-
-.collection-card:hover .collection-preview img {
-    transform: scale(1.06);
-}
-
-.collection-preview-placeholder {
-    height: 180px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, rgba(251,194,235,0.08), rgba(166,193,238,0.08));
-    color: rgba(136, 146, 176, 0.5);
-}
-
-.collection-footer {
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(10, 8, 22, 0.5);
-}
-
-.collection-name {
-    font-weight: 700;
-    font-size: 1rem;
-    margin: 0 0 3px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 160px;
-    color: #fff;
-}
-
-.collection-count {
-    font-size: 0.8rem;
-    opacity: 0.55;
-    margin: 0;
-    color: #cbd5e1;
-}
-
-.collection-menu-btn {
-    background: none;
-    border: none;
-    padding: 4px;
-    border-radius: 50%;
-    color: inherit;
-    opacity: 0.7;
-    cursor: pointer;
-    transition: opacity 0.2s, background 0.2s, transform 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-}
-
-.collection-menu-btn:hover {
-    opacity: 1;
-    background: rgba(255, 255, 255, 0.1);
-    transform: scale(1.05);
-}
-
-/* ─────────────────────────────────────────────
-   EMPTY STATES
-   ───────────────────────────────────────────── */
-.collections-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 24px;
-    text-align: center;
-    gap: 16px;
-    animation: collectionFadeIn 0.6s ease-out forwards;
-    opacity: 0;
-}
-
-.empty-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, rgba(251,194,235,0.15), rgba(166,193,238,0.15));
-    border: 1px solid rgba(251, 194, 235, 0.2);
-    color: rgba(251, 194, 235, 0.7);
-    margin-bottom: 8px;
-}
-
-.collections-empty h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0;
-}
-
-.collections-empty p {
-    font-size: 0.95rem;
-    opacity: 0.55;
-    max-width: 340px;
-    margin: 0;
-    line-height: 1.6;
-    color: #cbd5e1;
-}
-
-/* ─────────────────────────────────────────────
-   MODALS
-   ───────────────────────────────────────────── */
-.modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: backdropFadeIn 0.2s ease forwards;
-}
-
-.collection-modal {
-    background: linear-gradient(135deg, rgba(25, 20, 45, 0.98), rgba(15, 12, 30, 0.98));
-    border: 1px solid rgba(251, 194, 235, 0.2);
-    border-radius: 24px;
-    padding: 36px;
-    width: 90%;
-    max-width: 440px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
-    animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.collection-modal h2 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #fff;
-    margin: 0 0 6px;
-}
-
-.collection-modal p {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.5);
-    margin: 0 0 24px;
-}
-
-.collection-modal input[type="text"] {
-    width: 100%;
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(251, 194, 235, 0.25);
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s, background-color 0.2s;
-    margin-bottom: 20px;
-    box-sizing: border-box;
-}
-
-.collection-modal input[type="text"]:focus {
-    border-color: rgba(251, 194, 235, 0.6);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.collection-modal input[type="text"]::placeholder {
-    color: rgba(255, 255, 255, 0.3);
-}
-
-.modal-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-}
-
-.btn-modal-cancel {
-    padding: 10px 20px;
-    border-radius: 50px;
-    border: 1px solid rgba(136, 146, 176, 0.25);
-    background: transparent;
-    color: rgba(255, 255, 255, 0.65);
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-modal-cancel:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.4);
-    color: #fff;
-}
-
-.btn-modal-confirm {
-    padding: 10px 22px;
-    border-radius: 50px;
-    border: none;
-    background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
-    color: #0f1115;
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.btn-modal-confirm:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(166, 193, 238, 0.4);
-}
-
-/* ─────────────────────────────────────────────
-   LOADING SPINNER
-   ───────────────────────────────────────────── */
-.collections-loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 24px;
-    gap: 16px;
-    color: #8892b0;
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(166, 193, 238, 0.15);
-    border-top-color: #a6c1ee;
-    border-radius: 50%;
-    animation: spin 0.9s linear infinite;
-}
-
-/* ─────────────────────────────────────────────
-   NAVIGATION
-   ───────────────────────────────────────────── */
-.btn-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 18px;
-    border-radius: 50px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.03);
-    color: #fff;
-    font-size: 0.9rem;
-    cursor: pointer;
-    margin-bottom: 24px;
-    backdrop-filter: blur(5px);
-    transition: all 0.2s ease;
-}
-
-.btn-back:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-/* ─────────────────────────────────────────────
-   ANIMATIONS
-   ───────────────────────────────────────────── */
-@keyframes backdropFadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes modalSlideUp { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@keyframes collectionFadeIn { to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes dynamicGradientFlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-@keyframes cinematicPanZoom {
-    0% { transform: scale(1.05) translate(0px, 0px) rotate(0deg); }
-    50% { transform: scale(1.15) translate(-15px, 10px) rotate(0.5deg); }
-    100% { transform: scale(1.05) translate(10px, -15px) rotate(-0.5deg); }
-}
-
-/* ─────────────────────────────────────────────
-   RESPONSIVE
-   ───────────────────────────────────────────── */
-@media (max-width: 768px) {
-    .collections-hero-content h1  { font-size: 2.2rem; }
-    .collections-content          { padding: 24px 4% 0; }
-    .collections-grid              { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
-    .collection-wallpapers-grid   { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-    .collection-modal             { padding: 28px 20px; }
-    .collections-stats-bar        { flex-direction: column; gap: 6px; padding: 12px 4%; text-align: center; }
-}
-
-@media (max-width: 480px) {
-    .collections-grid              { grid-template-columns: 1fr 1fr; gap: 10px; }
-    .collection-preview           { height: 130px; }
-    .collections-hero-content h1  { font-size: 1.8rem; }
-}
-
-/* ─────────────────────────────────────────────
-   FOLDER CARDS (new style)
-   ───────────────────────────────────────────── */
+/* --- Folder Layout Grid --- */
 .folders-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
 }
 
+/* FIX: overflow:visible so folder-manage-btn is NOT clipped */
 .folder-card {
-    position: relative;
-    min-height: 230px;
-    border-radius: 18px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(15, 12, 32, 0.56);
-    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(12px);
-    cursor: pointer;
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+  background-color: #161920;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 1rem;
+  cursor: pointer;
+  overflow: visible; /* was missing — edit button was being clipped */
+  transition: border-color 0.2s, transform 0.2s;
 }
 
 .folder-card:hover {
-    transform: translateY(-5px);
-    border-color: rgba(251, 194, 235, 0.45);
-    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.36);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-4px);
 }
 
-/* 2x2 mosaic preview grid at top of folder card */
+/* Mosaic 2x2 preview grid — overflow:hidden here clips images only */
 .folder-preview-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap: 2px;
-    height: 150px;
-    background: rgba(255, 255, 255, 0.04);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden; /* clips images only, not the edit button */
+  margin-bottom: 1rem;
+  background-color: #0f1115;
 }
 
-/* Each tile in the 2x2 grid — position:relative required for Next.js Image fill */
+/* Each tile needs position:relative for Next.js Image fill */
 .folder-preview-tile {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg, rgba(251,194,235,0.12), rgba(166,193,238,0.12));
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #1e222b;
+  overflow: hidden;
 }
 
 .folder-preview-tile.placeholder {
-    display: block;
-}
-
-.folder-icon-wrapper {
-    height: 150px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    background: linear-gradient(135deg, rgba(251,194,235,0.1), rgba(166,193,238,0.14));
-}
-
-.folder-icon-main {
-    width: 112px;
-    height: 76px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
-    box-shadow: 0 14px 30px rgba(166, 193, 238, 0.25);
-}
-
-.folder-icon-tab {
-    position: absolute;
-    width: 54px;
-    height: 18px;
-    top: 48px;
-    left: calc(50% - 56px);
-    border-radius: 8px 8px 0 0;
-    background: #fbc2eb;
-}
-
-.folder-info {
-    padding: 15px 16px 17px;
-    background: rgba(10, 8, 22, 0.54);
+  background: linear-gradient(45deg, #1e222b, #2a2f3d);
 }
 
 .folder-info h3 {
-    margin: 0 44px 4px 0;
-    font-size: 1rem;
-    font-weight: 800;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 0.25rem 0;
+  /* leave room for the manage button */
+  padding-right: 2.5rem;
 }
 
 .folder-info p {
-    margin: 0;
-    color: #cbd5e1;
-    font-size: 0.82rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0;
 }
 
+/* FIX: always visible edit button with dark background for contrast */
 .folder-manage-btn {
-    position: absolute;
-    right: 12px;
-    bottom: 14px;
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  /* FIX: dark bg so white icon always contrasts against any wallpaper */
+  background-color: rgba(0, 0, 0, 0.75);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  /* FIX: bigger size for easier clicking and better visibility */
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20; /* sits above card content */
+  /* FIX: always visible, not just on hover */
+  opacity: 1;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
 }
 
 .folder-manage-btn:hover {
-    background: rgba(255, 255, 255, 0.16);
+  background-color: #ffffff;
+  border-color: #ffffff;
+  transform: scale(1.08);
 }
 
-/* ─────────────────────────────────────────────
-   ASSET VIEW (inside a folder)
-   ───────────────────────────────────────────── */
+/* FIX: icon color flips on hover for contrast */
+.folder-manage-btn svg {
+  color: #ffffff;
+  stroke: #ffffff;
+}
+
+.folder-manage-btn:hover svg {
+  stroke: #0f1115 !important;
+  color: #0f1115 !important;
+}
+
+/* --- Assets Inner Folder View --- */
 .assets-view {
-    animation: collectionFadeIn 0.35s ease-out forwards;
+  width: 100%;
 }
 
 .assets-header {
-    display: grid;
-    grid-template-columns: auto 1fr minmax(220px, 340px);
-    gap: 18px;
-    align-items: center;
-    margin-bottom: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.btn-back:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .assets-title-group h2 {
-    margin: 0 0 4px;
-    font-size: 1.6rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
 }
 
 .assets-title-group p {
-    margin: 0;
-    color: #cbd5e1;
-    font-size: 0.88rem;
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
+/* FIX: improved search input — bigger, better placeholder */
 .assets-search-wrapper {
-    position: relative;
+  position: relative;
+  min-width: 300px;
 }
 
-.assets-search-wrapper .search-icon {
-    position: absolute;
-    left: 13px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: rgba(255, 255, 255, 0.55);
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
 }
 
 .assets-search-wrapper input {
-    width: 100%;
-    min-height: 44px;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.06);
-    color: #fff;
-    padding: 0 14px 0 42px;
-    outline: none;
+  width: 100%;
+  background-color: #161920;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  /* FIX: taller input and bigger text for readability */
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  color: #ffffff;
+  outline: none;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
 }
 
+.assets-search-wrapper input::placeholder {
+  color: #475569;
+}
+
+.assets-search-wrapper input:focus {
+  border-color: rgba(255, 255, 255, 0.25);
+  background-color: #1a1f29;
+}
+
+/* Wallpaper Cards Grid Layout */
 .assets-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-    gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
 }
 
-/* Asset card — overflow:visible so hover overlay is not clipped */
+/* FIX: overflow:visible so overlay is not clipped */
 .asset-card {
-    position: relative;
-    aspect-ratio: 9 / 14;
-    border-radius: 16px;
-    overflow: visible;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    cursor: pointer;
-    transition: transform 0.24s ease, box-shadow 0.24s ease;
+  position: relative;
+  aspect-ratio: 3 / 4;
+  background-color: #161920;
+  border-radius: 14px;
+  overflow: visible; /* was hidden — clipped the hover overlay */
+  cursor: pointer;
 }
 
-.asset-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
-}
-
-/* Image wrapper clips the image only — keeps border-radius clean */
+/* FIX: image wrapper clips image only, not the overlay */
 .asset-image-wrapper {
-    position: absolute;
-    inset: 0;
-    border-radius: 16px;
-    overflow: hidden;
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  z-index: 0;
 }
 
-/* Overlay gradient — sits above image, visible on hover */
+.asset-image-wrapper img {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.asset-card:hover .asset-image-wrapper img {
+  transform: scale(1.04);
+}
+
+/* --- Action Overlays (Hover Elements) --- */
 .asset-overlay {
-    position: absolute;
-    inset: auto 0 0;
-    padding: 14px;
-    background: linear-gradient(to top, rgba(0,0,0,0.88), transparent);
-    opacity: 0;
-    transition: opacity 0.22s ease;
-    border-radius: 0 0 16px 16px;
-    z-index: 2;
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: linear-gradient(to top, rgba(15, 17, 21, 0.9) 0%, transparent 45%, rgba(15, 17, 21, 0.3) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 2; /* sits above image wrapper */
 }
 
 .asset-card:hover .asset-overlay {
-    opacity: 1;
+  opacity: 1;
 }
 
 .asset-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
+  display: flex;
+  gap: 0.75rem;
+  transform: translateY(10px);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.asset-card:hover .asset-actions {
+  transform: translateY(0);
+}
+
+/* FIX: bigger buttons with dark bg so icons are always clearly visible */
 .asset-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+  /* FIX: increased size from 40px to 48px */
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  /* FIX: dark semi-transparent bg so white icons always contrast */
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.15s, border-color 0.2s;
+}
+
+/* FIX: icon always white so it's visible against dark bg */
+.asset-btn svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }
 
 .asset-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+  background-color: #ffffff;
+  border-color: #ffffff;
+  transform: scale(1.08);
 }
 
-.btn-delete:hover {
-    color: #ef4444;
-    border-color: rgba(239, 68, 68, 0.45);
+/* FIX: icon flips to dark on hover for contrast */
+.asset-btn:hover svg {
+  stroke: #0f1115 !important;
+  color: #0f1115 !important;
 }
 
-.asset-missing-preview,
+.asset-btn.btn-delete:hover {
+  background-color: #ef4444;
+  border-color: #ef4444;
+}
+
+.asset-btn.btn-delete:hover svg {
+  stroke: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Empty State Handling */
 .empty-assets {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    color: #cbd5e1;
-    text-align: center;
-    padding: 24px;
+  text-align: center;
+  padding: 6rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
-/* ─────────────────────────────────────────────
-   MODAL OVERLAY (create / manage)
-   ───────────────────────────────────────────── */
+.empty-assets p {
+  color: #64748b;
+  font-size: 1.05rem;
+}
+
+/* --- Modals Framework --- */
 .modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.62);
-    backdrop-filter: blur(8px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(10, 11, 14, 0.8);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
 }
 
 .modal-content {
-    width: min(440px, 100%);
-    border-radius: 20px;
-    padding: 26px;
-    background: rgba(20, 18, 34, 0.96);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #fff;
+  background-color: #161920;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  width: 100%;
+  max-width: 480px;
+  border-radius: 16px;
+  padding: 2rem;
 }
 
 .modal-content h2 {
-    margin: 0 0 18px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
 }
 
 .modal-content label {
-    display: block;
-    margin-bottom: 8px;
-    color: #cbd5e1;
+  display: block;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
+.modal-content input[type="text"],
 .modal-content input {
-    width: 100%;
-    min-height: 44px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.06);
-    color: #fff;
-    padding: 0 12px;
-    margin-bottom: 16px;
-    outline: none;
-    box-sizing: border-box;
+  width: 100%;
+  background-color: #0f1115;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #ffffff;
+  outline: none;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  box-sizing: border-box;
 }
 
-.btn-cancel,
-.btn-confirm,
-.btn-delete-full {
-    min-height: 40px;
-    border-radius: 999px;
-    padding: 0 16px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+.modal-content input:focus {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.modal-actions .right-actions {
+  display: flex;
+  gap: 1rem;
 }
 
 .btn-cancel {
-    background: transparent;
-    color: #cbd5e1;
+  background-color: transparent;
+  border: none;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+}
+
+.btn-cancel:hover {
+  color: #ffffff;
 }
 
 .btn-confirm {
-    border: none;
-    background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
-    color: #0f1115;
-    font-weight: 800;
+  background-color: #ffffff;
+  color: #0f1115;
+  border: none;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.btn-confirm:hover {
+  background-color: #e2e8f0;
 }
 
 .btn-delete-full {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.08);
-    border-color: rgba(239, 68, 68, 0.28);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: auto;
+  padding: 0.5rem 0;
 }
 
-.right-actions {
-    display: flex;
-    gap: 10px;
+.btn-delete-full:hover {
+  opacity: 0.8;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 640px) {
+  .collections-hero h1         { font-size: 2.25rem; }
+  .collections-stats-bar       { gap: 1rem; flex-direction: column; align-items: center; }
+  .assets-header               { flex-direction: column; align-items: stretch; }
+  .assets-search-wrapper       { min-width: 100%; }
+  .modal-actions               { flex-direction: column-reverse; align-items: stretch; gap: 1.5rem; }
+  .modal-actions .right-actions { flex-direction: column; }
+  .btn-delete-full             { margin-right: 0; justify-content: center; }
+  .assets-grid                 { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .asset-btn                   { width: 42px; height: 42px; }
 }
 
 /* ─────────────────────────────────────────────
-   MOVE POPOVER
+   MOVE TO FOLDER POPOVER
+   Appears above the move button when clicked
    ───────────────────────────────────────────── */
+
+/* Wrapper gives the popover a positioning anchor */
+.move-btn-wrapper {
+    position: relative;
+}
+
+/* Popover box — floats above the card */
 .move-popover {
     position: absolute;
-    right: 12px;
-    top: 12px;
-    z-index: 40;
-    background: rgba(10,12,14,0.96);
-    border: 1px solid rgba(255,255,255,0.06);
-    padding: 10px;
-    border-radius: 10px;
+    bottom: calc(100% + 10px); /* sits above the button */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    background: #1e222b;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 12px;
     min-width: 200px;
-    box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
 }
 
 .move-popover-title {
-    color: #cdd6e0;
-    font-weight: 600;
-    margin-bottom: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 10px;
+}
+
+.move-popover-empty {
     font-size: 0.85rem;
+    color: #475569;
+    margin: 0;
+    text-align: center;
+    padding: 8px 0;
 }
 
-.move-popover-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 200px;
-    overflow: auto;
-}
-
+/* Each folder option in the move list */
 .move-target-btn {
-    text-align: left;
-    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 10px;
     border-radius: 8px;
+    border: none;
     background: transparent;
-    color: #e6eef8;
-    border: 1px solid transparent;
+    color: #e2e8f0;
+    font-size: 0.88rem;
     cursor: pointer;
+    text-align: left;
+    transition: background 0.15s ease;
 }
 
-.move-target-btn:hover { background: rgba(255,255,255,0.02); }
-.move-target-btn.active { background: rgba(88,101,242,0.12); border-color: rgba(88,101,242,0.18); }
-
-/* ─────────────────────────────────────────────
-   RESPONSIVE (new components)
-   ───────────────────────────────────────────── */
-@media (max-width: 760px) {
-    .folders-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
-    .folder-card { min-height: 205px; }
-    .assets-header { grid-template-columns: 1fr; }
-    .assets-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.move-target-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, ArrowLeft, Download, Share, Edit3, Search, FolderPlus } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Download, Share, Edit3, Search, FolderPlus, FolderInput } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { useShareModal } from '@/lib/ShareModalContext';
 import { useImageFormat } from "@/hooks/useImageFormat";
@@ -18,8 +18,9 @@ export default function Collections() {
     const [selectedFolder, setSelectedFolder] = useState(null);
     const [bgImage, setBgImage] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+
+    // movePanelFor stores the photo ID that has its move popover open
     const [movePanelFor, setMovePanelFor] = useState(null);
-    const [moveTarget, setMoveTarget] = useState('');
     const movePanelRef = useRef(null);
 
     // Modal states
@@ -62,7 +63,6 @@ export default function Collections() {
                 return parsedData;
             }
 
-            // Seed with default folders if nothing exists yet
             const seedData = {
                 "Favorites": [],
                 "Aesthetic Themes": [],
@@ -73,8 +73,8 @@ export default function Collections() {
             setCollectionMeta({});
             return seedData;
         } catch (error) {
-            console.error("Critical error parsing internal collections context:", error);
-            toast.error("Unable to access local client wallpaper storage vault.");
+            console.error("Critical error parsing collections:", error);
+            toast.error("Unable to access local wallpaper storage.");
             return {};
         } finally {
             setLoading(false);
@@ -90,14 +90,13 @@ export default function Collections() {
                 const collectionObject = {};
                 const meta = {};
                 remoteCollections.forEach((col) => {
-                    // Extract the metadata blob saved alongside each wallpaper
                     const wallpapers = (col.wallpapers || []).map((item) => item.metadata || {
                         id: item.wallpaperId,
                         wallpaperId: item.wallpaperId,
                         src: {},
                     });
                     collectionObject[col.name] = wallpapers;
-                    meta[col.name] = col; // keep full DB doc for update/delete operations
+                    meta[col.name] = col;
                 });
                 setCollections(collectionObject);
                 setCollectionMeta(meta);
@@ -106,7 +105,7 @@ export default function Collections() {
             }
         } catch (error) {
             console.error('Unable to load remote collections:', error);
-            toast.error('Unable to load your saved collections from the database.');
+            toast.error('Unable to load your saved collections.');
         } finally {
             setLoading(false);
         }
@@ -137,24 +136,27 @@ export default function Collections() {
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (!movePanelFor) return;
-            const el = movePanelRef.current;
-            if (el && !el.contains(e.target)) {
+            if (movePanelRef.current && !movePanelRef.current.contains(e.target)) {
                 setMovePanelFor(null);
-                setMoveTarget('');
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [movePanelFor]);
 
-    // Filter wallpapers inside a folder by search query
+    // Filter wallpapers by title, photographer, or avg_color
     const filteredWallpapers = useMemo(() => {
         if (!selectedFolder || !collections[selectedFolder]) return [];
         const items = collections[selectedFolder];
-        if (!searchQuery.trim()) return items;
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return items;
+
         return items.filter(photo => {
-            const normalizedTitle = (photo.alt || 'curated wallpaper').toLowerCase();
-            return normalizedTitle.includes(searchQuery.toLowerCase().trim());
+            const altText = (photo.alt || '').toLowerCase();
+            const photographerName = (photo.photographer || '').toLowerCase();
+            const matchesText = altText.includes(query) || photographerName.includes(query);
+            const matchesFormat = photo.avg_color?.toLowerCase().includes(query) || false;
+            return matchesText || matchesFormat;
         });
     }, [selectedFolder, collections, searchQuery]);
 
@@ -170,7 +172,7 @@ export default function Collections() {
         const trimmedName = newFolderName.trim();
         if (!trimmedName) return;
         if (collections[trimmedName]) {
-            return toast.error("A directory matching this structural name already exists.");
+            return toast.error("A folder with this name already exists.");
         }
 
         if (user) {
@@ -182,12 +184,11 @@ export default function Collections() {
                 toast.success(`Folder "${trimmedName}" created successfully.`);
             } catch (error) {
                 console.error('Create collection failed:', error);
-                toast.error('Could not create a new collection folder.');
+                toast.error('Could not create collection.');
             }
             return;
         }
 
-        // Guest: save to localStorage
         const updatedVaults = { ...collections, [trimmedName]: [] };
         setCollections(updatedVaults);
         localStorage.setItem('user_collections', JSON.stringify(updatedVaults));
@@ -212,7 +213,7 @@ export default function Collections() {
             return;
         }
         if (collections[trimmedNewName]) {
-            return toast.error("A folder named inside this directory already exists.");
+            return toast.error("A folder with this name already exists.");
         }
 
         if (user && collectionMeta[folderToManage]) {
@@ -225,11 +226,10 @@ export default function Collections() {
                 return;
             } catch (error) {
                 console.error('Rename failed:', error);
-                toast.error('Could not rename the collection.');
+                toast.error('Could not rename collection.');
             }
         }
 
-        // Guest: update key in localStorage
         const updatedVaults = { ...collections };
         updatedVaults[trimmedNewName] = updatedVaults[folderToManage];
         delete updatedVaults[folderToManage];
@@ -243,7 +243,7 @@ export default function Collections() {
 
     // Deletes a collection folder and all its wallpapers
     const purgeCollectionFolder = async (folderKey) => {
-        if (!window.confirm(`Are you sure you want to permanently delete "${folderKey}"?`)) return;
+        if (!window.confirm(`Delete "${folderKey}" permanently?`)) return;
 
         if (user && collectionMeta[folderKey]) {
             try {
@@ -254,13 +254,12 @@ export default function Collections() {
                 toast.success(`"${folderKey}" deleted.`);
                 return;
             } catch (error) {
-                console.error('Delete collection failed:', error);
-                toast.error('Could not delete the collection.');
+                console.error('Delete failed:', error);
+                toast.error('Could not delete collection.');
                 return;
             }
         }
 
-        // Guest: remove key from localStorage
         const updatedVaults = { ...collections };
         delete updatedVaults[folderKey];
         setCollections(updatedVaults);
@@ -287,24 +286,94 @@ export default function Collections() {
                 );
                 await updateCollection(collection._id, { wallpapers: remoteWallpapers });
                 await reloadCollections();
-                toast.success("Wallpaper removed from collection.");
+                toast.success("Wallpaper removed.");
                 return;
             } catch (error) {
-                console.error('Remove wallpaper failed:', error);
-                toast.error('Could not remove wallpaper from the collection.');
+                console.error('Remove failed:', error);
+                toast.error('Could not remove wallpaper.');
                 return;
             }
         }
 
-        // Guest: filter out and save back to localStorage
         const updatedVaults = { ...collections, [selectedFolder]: filteredPayload };
         setCollections(updatedVaults);
         localStorage.setItem('user_collections', JSON.stringify(updatedVaults));
         extractDynamicBackdrop(updatedVaults);
-        toast.success("Wallpaper removed from collection.");
+        toast.success("Wallpaper removed.");
     };
 
-    // Downloads a wallpaper as a blob to bypass browser download restrictions
+    // Moves a wallpaper from current folder to a target folder
+    const moveWallpaperToFolder = async (photo, targetFolderName, event) => {
+        event.stopPropagation();
+        const photoId = photo.id || photo.wallpaperId;
+
+        // Don't allow moving to the same folder
+        if (targetFolderName === selectedFolder) {
+            toast.error("Wallpaper is already in this folder.");
+            setMovePanelFor(null);
+            return;
+        }
+
+        // Check if wallpaper already exists in target folder
+        const targetItems = collections[targetFolderName] || [];
+        const alreadyExists = targetItems.some(
+            item => (item.id || item.wallpaperId) === photoId
+        );
+        if (alreadyExists) {
+            toast.error(`Already in "${targetFolderName}".`);
+            setMovePanelFor(null);
+            return;
+        }
+
+        if (user && collectionMeta[selectedFolder] && collectionMeta[targetFolderName]) {
+            try {
+                // Remove from source folder
+                const sourceCol = collectionMeta[selectedFolder];
+                const sourceRemaining = (sourceCol.wallpapers || []).filter(
+                    item => item.wallpaperId !== photoId
+                );
+                await updateCollection(sourceCol._id, { wallpapers: sourceRemaining });
+
+                // Add to target folder
+                const targetCol = collectionMeta[targetFolderName];
+                const targetUpdated = [
+                    ...(targetCol.wallpapers || []),
+                    {
+                        wallpaperId: String(photoId),
+                        addedAt: new Date().toISOString(),
+                        metadata: photo,
+                    },
+                ];
+                await updateCollection(targetCol._id, { wallpapers: targetUpdated });
+
+                await reloadCollections();
+                toast.success(`Moved to "${targetFolderName}".`);
+            } catch (error) {
+                console.error('Move failed:', error);
+                toast.error('Could not move wallpaper.');
+            }
+        } else {
+            // Guest localStorage move
+            const updatedVaults = { ...collections };
+
+            // Remove from source
+            updatedVaults[selectedFolder] = (updatedVaults[selectedFolder] || []).filter(
+                item => (item.id || item.wallpaperId) !== photoId
+            );
+
+            // Add to target
+            updatedVaults[targetFolderName] = [...(updatedVaults[targetFolderName] || []), photo];
+
+            setCollections(updatedVaults);
+            localStorage.setItem('user_collections', JSON.stringify(updatedVaults));
+            extractDynamicBackdrop(updatedVaults);
+            toast.success(`Moved to "${targetFolderName}".`);
+        }
+
+        setMovePanelFor(null);
+    };
+
+    // Downloads a wallpaper as a blob
     const processBinarySystemDownload = async (assetUrl, alternativeText) => {
         try {
             toast.loading("Preparing download...");
@@ -323,32 +392,34 @@ export default function Collections() {
         } catch (error) {
             console.error("Download failed:", error);
             toast.dismiss();
-            toast.error("Download failed. Please try again.");
+            toast.error("Download failed.");
         }
     };
 
+    // Other folder names (excluding the current one) for the move popover
+    const otherFolders = Object.keys(collections).filter(k => k !== selectedFolder);
+
     return (
         <div className="collections-page">
-
-            {/* Animated fullscreen backdrop — uses first saved wallpaper or gradient fallback */}
             <div
                 className={`fullscreen-bg-canvas ${bgImage ? 'has-image' : 'gradient-only'}`}
                 style={bgImage ? { backgroundImage: `url(${bgImage})` } : {}}
             />
             <div className="fullscreen-bg-overlay" />
 
-            {/* Hero section with page title and new collection CTA */}
+            {/* Hero */}
             <div className="collections-hero">
                 <div className="collections-hero-content">
                     <h1>Your Saved <span className="collections-gradient">Collections</span></h1>
                     <p>Organize, review, and manage your curated wallpaper sets</p>
                     <button className="btn-new-collection" onClick={() => setShowCreateModal(true)}>
-                        <Plus size={18} /> New Collection
+                        <Plus size={22} color="#0f1115" strokeWidth={2.5} />
+                        New Collection
                     </button>
                 </div>
             </div>
 
-            {/* Stats bar showing folder and wallpaper counts */}
+            {/* Stats bar */}
             <div className="collections-stats-bar">
                 <div className="collections-stat">
                     <span>Total Folders: <strong>{Object.keys(collections).length} Directories</strong></span>
@@ -364,9 +435,7 @@ export default function Collections() {
                     /* ── FOLDER GRID VIEW ── */
                     <div className="folders-grid">
                         {Object.keys(collections).map((folderKey) => {
-                            // Get up to 4 wallpapers to show as a 2x2 preview mosaic
                             const previewPhotos = (collections[folderKey] || []).slice(0, 4);
-                            // Fill remaining slots with placeholders so the grid always has 4 cells
                             const placeholderCount = Math.max(0, 4 - previewPhotos.length);
 
                             return (
@@ -375,7 +444,7 @@ export default function Collections() {
                                     className="folder-card"
                                     onClick={() => setSelectedFolder(folderKey)}
                                 >
-                                    {/* 2x2 wallpaper mosaic preview */}
+                                    {/* 2x2 mosaic preview */}
                                     <div className="folder-preview-grid">
                                         {previewPhotos.map((photo, i) => (
                                             <div key={i} className="folder-preview-tile">
@@ -388,29 +457,26 @@ export default function Collections() {
                                                         sizes="120px"
                                                     />
                                                 ) : (
-                                                    /* No image available — show gradient placeholder */
                                                     <div className="folder-preview-tile placeholder" />
                                                 )}
                                             </div>
                                         ))}
-                                        {/* Fill remaining grid cells with empty placeholders */}
                                         {Array.from({ length: placeholderCount }).map((_, i) => (
                                             <div key={`ph-${i}`} className="folder-preview-tile placeholder" />
                                         ))}
                                     </div>
 
-                                    {/* Folder name, count, and manage button */}
                                     <div className="folder-info">
                                         <h3>{folderKey}</h3>
                                         <p>{collections[folderKey].length} wallpapers</p>
                                     </div>
 
-                                    {/* Edit button — stops click propagation so it doesn't open the folder */}
+                                    {/* Edit button — stops propagation so folder doesn't open */}
                                     <button
                                         className="folder-manage-btn"
                                         onClick={(e) => openManageModal(folderKey, e)}
                                     >
-                                        <Edit3 size={16} />
+                                        <Edit3 size={18} color="#ffffff" strokeWidth={2} />
                                     </button>
                                 </div>
                             );
@@ -419,11 +485,12 @@ export default function Collections() {
 
                 ) : (
 
-                    /* ── ASSET LIST VIEW (inside a folder) ── */
+                    /* ── ASSET LIST VIEW ── */
                     <div className="assets-view">
                         <div className="assets-header">
                             <button className="btn-back" onClick={() => setSelectedFolder(null)}>
-                                <ArrowLeft size={18} /> Back to Folders
+                                <ArrowLeft size={18} color="#ffffff" strokeWidth={2} />
+                                Back to Folders
                             </button>
                             <div className="assets-title-group">
                                 <h2>{selectedFolder}</h2>
@@ -433,7 +500,7 @@ export default function Collections() {
                                 <Search size={18} className="search-icon" />
                                 <input
                                     type="text"
-                                    placeholder="Search in folder..."
+                                    placeholder="Search by title or photographer..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -442,62 +509,108 @@ export default function Collections() {
 
                         {filteredWallpapers.length === 0 ? (
                             <div className="empty-assets">
-                                <FolderPlus size={48} />
+                                <FolderPlus size={56} color="#64748b" />
                                 <p>{searchQuery ? "No matching wallpapers found." : "This collection is empty."}</p>
                             </div>
                         ) : (
                             <div className="assets-grid">
-                                {filteredWallpapers.map((photo) => (
-                                    <div
-                                        key={photo.id || photo.wallpaperId}
-                                        className="asset-card"
-                                        onClick={() => openModal(photo)}
-                                    >
-                                        {/* Wallpaper image — clipped inside its own wrapper so overlay can escape */}
-                                        <div className="asset-image-wrapper">
-                                            <Image
-                                                src={photo.src?.[imageFormat] || photo.src?.large || ''}
-                                                alt={photo.alt || 'Wallpaper'}
-                                                fill
-                                                style={{ objectFit: 'cover' }}
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                            />
-                                        </div>
+                                {filteredWallpapers.map((photo) => {
+                                    const photoId = photo.id || photo.wallpaperId;
+                                    const isMoveOpen = movePanelFor === photoId;
 
-                                        {/* Action overlay — appears on hover with download, share, delete */}
-                                        <div className="asset-overlay">
-                                            <div className="asset-actions">
-                                                <button
-                                                    className="asset-btn"
-                                                    title="Download"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        processBinarySystemDownload(photo.src?.original, photo.alt || 'wallpaper');
-                                                    }}
-                                                >
-                                                    <Download size={18} />
-                                                </button>
-                                                <button
-                                                    className="asset-btn"
-                                                    title="Share"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        openModal(photo);
-                                                    }}
-                                                >
-                                                    <Share size={18} />
-                                                </button>
-                                                <button
-                                                    className="asset-btn btn-delete"
-                                                    title="Remove from collection"
-                                                    onClick={(e) => extractItemFromFolder(photo.id || photo.wallpaperId, e)}
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
+                                    return (
+                                        <div
+                                            key={photoId}
+                                            className="asset-card"
+                                            onClick={() => openModal(photo)}
+                                        >
+                                            {/* Image — clipped by its own wrapper */}
+                                            <div className="asset-image-wrapper">
+                                                <Image
+                                                    src={photo.src?.[imageFormat] || photo.src?.large || ''}
+                                                    alt={photo.alt || 'Wallpaper'}
+                                                    fill
+                                                    style={{ objectFit: 'cover' }}
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                />
+                                            </div>
+
+                                            {/* Action overlay — visible on hover */}
+                                            <div className="asset-overlay">
+                                                <div className="asset-actions">
+                                                    {/* Download */}
+                                                    <button
+                                                        className="asset-btn"
+                                                        title="Download"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            processBinarySystemDownload(photo.src?.original, photo.alt || 'wallpaper');
+                                                        }}
+                                                    >
+                                                        <Download size={20} color="#ffffff" strokeWidth={2} />
+                                                    </button>
+
+                                                    {/* Share */}
+                                                    <button
+                                                        className="asset-btn"
+                                                        title="Share"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openModal(photo);
+                                                        }}
+                                                    >
+                                                        <Share size={20} color="#ffffff" strokeWidth={2} />
+                                                    </button>
+
+                                                    {/* Move to another folder — shows popover with folder list */}
+                                                    <div className="move-btn-wrapper" ref={isMoveOpen ? movePanelRef : null}>
+                                                        <button
+                                                            className="asset-btn"
+                                                            title="Move to folder"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                // Toggle the move popover for this specific card
+                                                                setMovePanelFor(isMoveOpen ? null : photoId);
+                                                            }}
+                                                        >
+                                                            <FolderInput size={20} color="#ffffff" strokeWidth={2} />
+                                                        </button>
+
+                                                        {/* Move popover — lists all other folders */}
+                                                        {isMoveOpen && (
+                                                            <div className="move-popover" onClick={(e) => e.stopPropagation()}>
+                                                                <p className="move-popover-title">Move to folder</p>
+                                                                {otherFolders.length === 0 ? (
+                                                                    <p className="move-popover-empty">No other folders available.</p>
+                                                                ) : (
+                                                                    otherFolders.map((folderName) => (
+                                                                        <button
+                                                                            key={folderName}
+                                                                            className="move-target-btn"
+                                                                            onClick={(e) => moveWallpaperToFolder(photo, folderName, e)}
+                                                                        >
+                                                                            <FolderPlus size={14} color="#94a3b8" strokeWidth={2} />
+                                                                            {folderName}
+                                                                        </button>
+                                                                    ))
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Remove from collection */}
+                                                    <button
+                                                        className="asset-btn btn-delete"
+                                                        title="Remove from collection"
+                                                        onClick={(e) => extractItemFromFolder(photoId, e)}
+                                                    >
+                                                        <Trash2 size={20} color="#ffffff" strokeWidth={2} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -528,7 +641,7 @@ export default function Collections() {
                 </div>
             )}
 
-            {/* Manage Collection Modal (rename / delete) */}
+            {/* Manage Collection Modal */}
             {showManageModal && (
                 <div className="modal-overlay" onClick={() => setShowManageModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -545,7 +658,8 @@ export default function Collections() {
                             />
                             <div className="modal-actions">
                                 <button type="button" className="btn-delete-full" onClick={() => purgeCollectionFolder(folderToManage)}>
-                                    <Trash2 size={16} /> Delete Collection
+                                    <Trash2 size={18} color="#ef4444" strokeWidth={2} />
+                                    Delete Collection
                                 </button>
                                 <div className="right-actions">
                                     <button type="button" className="btn-cancel" onClick={() => setShowManageModal(false)}>Cancel</button>
@@ -556,9 +670,6 @@ export default function Collections() {
                     </div>
                 </div>
             )}
-
         </div>
     );
 }
-
-/* CSS additions to append to collections.css */
