@@ -60,7 +60,6 @@ export default function LoginPage() {
             const provider = new GoogleAuthProvider();
             const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
-            // Enforce production client configuration linkage if setup in Vercel env
             if (clientId) {
                 provider.setCustomParameters({
                     client_id: clientId
@@ -125,7 +124,6 @@ export default function LoginPage() {
                     </button>
                 </form>
 
-                {/* Kept outside the HTML form element rule paths to isolate handshakes */}
                 <button className="google-btn" type="button" onClick={handleGoogleLogin} disabled={isLoading || isGoogleLoading}>
                     <span className="google-g">G</span> {isGoogleLoading ? 'Connecting...' : 'Continue with Google'}
                 </button>
