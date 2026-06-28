@@ -13,7 +13,6 @@ import './ExplorePage.css';
 
 const CATEGORIES = ["Abstract", "AMOLED", "Nature", "Minimalist", "Gaming", "Anime", "Architecture", "Cars"];
 
-// === MEMOIZED SUB-COMPONENT TO ELIMINATE PARENT RERENDERS ===
 const WallpaperCard = memo(({ wallpaper, isLiked, imageFormat, onOpenModal, onOpenSaveModal, onToggleLike, onTriggerDownload }) => {
     return (
         <div 
@@ -21,7 +20,7 @@ const WallpaperCard = memo(({ wallpaper, isLiked, imageFormat, onOpenModal, onOp
             onClick={() => onOpenModal(wallpaper)}
             style={{ cursor: 'pointer', position: 'relative' }}
         >
-            <div style={{ position: 'relative', width: '100%', height: '400px' }}>
+            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                 <Image 
                     src={wallpaper.src[imageFormat] || wallpaper.src.large} 
                     alt={wallpaper.alt || 'Wallpaper'} 
@@ -39,7 +38,6 @@ const WallpaperCard = memo(({ wallpaper, isLiked, imageFormat, onOpenModal, onOp
                     <p className="photographer-name">📸 {wallpaper.photographer}</p>
                 </div>
                 <div className="wallpaper-actions">
-                    {/* LIKE BUTTON */}
                     <button 
                         className={`wallpaper-btn ${isLiked ? 'liked' : ''}`} 
                         title="Like" 
@@ -55,7 +53,6 @@ const WallpaperCard = memo(({ wallpaper, isLiked, imageFormat, onOpenModal, onOp
                         /> 
                     </button>
                     
-                    {/* SAVE BUTTON */}
                     <button 
                         className="wallpaper-btn" 
                         title="Save"
@@ -64,7 +61,6 @@ const WallpaperCard = memo(({ wallpaper, isLiked, imageFormat, onOpenModal, onOp
                         <FolderPlus size={20}/> 
                     </button>
                     
-                    {/* DOWNLOAD BUTTON */}
                     <button 
                         className="wallpaper-btn" 
                         title="Download"
@@ -76,7 +72,6 @@ const WallpaperCard = memo(({ wallpaper, isLiked, imageFormat, onOpenModal, onOp
                         <Download size={20}/> 
                     </button>  
 
-                    {/* SHARE BUTTON */}
                     <button 
                         className="wallpaper-btn"
                         title="Share Asset" 
@@ -96,7 +91,6 @@ const WallpaperCard = memo(({ wallpaper, isLiked, imageFormat, onOpenModal, onOp
 WallpaperCard.displayName = "WallpaperCard";
 
 
-// === MAIN COMPONENT ===
 export default function ExplorePage() {
     const { user } = useAuth();
     const [wallpapers, setWallpapers] = useState([]);
@@ -115,7 +109,6 @@ export default function ExplorePage() {
     const { openModal } = useShareModal();
     const imageFormat = useImageFormat();
 
-    // Move declaration before use
     const loadLocalCollections = useCallback(() => {
         try {
             const saved = window.localStorage.getItem('user_collections');
@@ -139,7 +132,6 @@ export default function ExplorePage() {
         return seedData;
     }, []);
 
-    // Isolated Data Fetching Function
     const fetchWallpapers = useCallback(async (queryToFetch) => {
         setLoading(true); 
         try {
@@ -154,15 +146,12 @@ export default function ExplorePage() {
         }
     }, []);
 
-    // React clean-effect tracker sync
     useEffect(() => {
         fetchWallpapers(currentQuery);
     }, [currentQuery, fetchWallpapers]); 
 
-    // Synchronize Profile Collection Data Lists
     useEffect(() => {
         if (!user) {
-            // Avoid setting state in effect directly by wrapping in a conditional or callback
             const local = loadLocalCollections();
             setCollectionNames(Object.keys(local));
             return;
@@ -187,7 +176,6 @@ export default function ExplorePage() {
         getCollections();
     }, [user, loadLocalCollections]);
 
-    // Synchronize User Profile Bookmarks / Favorites Maps
     useEffect(() => {
         if (!user) {
             setLikedIds(new Set());
@@ -431,89 +419,98 @@ export default function ExplorePage() {
     };
 
     return (
-        <div className="explore-container">
-            <header className="explore-header">
-                <div className="explore-hero">
+        <div className="explore-page-container">
+            <div className="explore-hero">
+                <div className="explore-hero-overlay"></div>
+                <div className="explore-hero-content">
                     <h1>Explore Premium Wallpapers</h1>
                     <p>Discover hand-picked collections for your devices</p>
-                    <SearchBar onSearch={handleSearch} />
+                    <div className="hero-search-wrapper">
+                        <SearchBar onSearch={handleSearch} />
+                    </div>
                 </div>
-            </header>
+            </div>
 
-            <nav className="category-nav">
-                <div className="category-scroll">
-                    {CATEGORIES.map((category) => (
-                        <button 
-                            key={category} 
-                            className={`category-pill ${currentQuery === category ? 'active' : ''}`}
-                            onClick={() => handleCategoryClick(category)}
-                        >
-                            {category}
-                        </button>
-                    ))}
-                </div>
-            </nav>
+            <div className="categories-container">
+                {CATEGORIES.map((category) => (
+                    <button 
+                        key={category} 
+                        className={`category-pill ${currentQuery === category ? 'active' : ''}`}
+                        onClick={() => handleCategoryClick(category)}
+                    >
+                        {category}
+                    </button>
+                ))}
+            </div>
 
-            <main className="explore-grid">
+            <div className="explore-content">
                 {loading ? (
-                    <div className="loading-state">
+                    <div className="loading-container">
                         <div className="spinner"></div>
                         <p>Curating your gallery...</p>
                     </div>
                 ) : wallpapers.length > 0 ? (
-                    wallpapers.map((wallpaper) => (
-                        <WallpaperCard 
-                            key={wallpaper.id} 
-                            wallpaper={wallpaper}
-                            isLiked={likedIds.has(String(wallpaper.id))}
-                            imageFormat={imageFormat}
-                            onOpenModal={openModal}
-                            onOpenSaveModal={openSaveModal}
-                            onToggleLike={toggleLike}
-                            onTriggerDownload={triggerDownload}
-                        />
-                    ))
+                    <div className="wallpaper-grid">
+                        {wallpapers.map((wallpaper) => (
+                            <WallpaperCard 
+                                key={wallpaper.id} 
+                                wallpaper={wallpaper}
+                                isLiked={likedIds.has(String(wallpaper.id))}
+                                imageFormat={imageFormat}
+                                onOpenModal={openModal}
+                                onOpenSaveModal={openSaveModal}
+                                onToggleLike={toggleLike}
+                                onTriggerDownload={triggerDownload}
+                            />
+                        ))}
+                    </div>
                 ) : (
                     <div className="empty-state">
                         <p>No wallpapers found for &quot;{currentQuery}&quot;</p>
                     </div>
                 )}
-            </main>
+            </div>
 
             {/* Collection Save Modal */}
             {showCollectionModal && (
-                <div className="collection-modal-overlay" onClick={closeSaveModal}>
-                    <div className="collection-modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h2>Save to Collection</h2>
+                <div className="collection-modal-backdrop" onClick={closeSaveModal}>
+                    <div className="collection-modal-card" onClick={(e) => e.stopPropagation()}>
+                        <div className="collection-modal-header">
+                            <h2>Save to Collection</h2>
+                            <p>Choose an existing collection or create a new one</p>
+                        </div>
                         <div className="collection-list">
                             {collectionNames.length > 0 ? (
                                 collectionNames.map((name) => (
                                     <button 
                                         key={name} 
-                                        className="collection-item-btn"
+                                        className="collection-choice-btn"
                                         onClick={() => saveWallpaperToCollection(name)}
                                     >
                                         {name}
                                     </button>
                                 ))
                             ) : (
-                                <p className="collection-empty">No collections found yet. Create one below.</p>
+                                <p className="collection-empty">No collections yet. Create one below.</p>
                             )}
                         </div>
 
-                        <form className="collection-create-form" onSubmit={handleCreateCollectionAndSave}>
+                        <div className="collection-create-form">
                             <input
                                 value={newCollectionName}
                                 onChange={(event) => setNewCollectionName(event.target.value)}
                                 placeholder="New collection name"
                                 className="collection-input"
                                 maxLength={24}
-                                required
                             />
-                            <button type="submit" className="collection-submit-btn">
+                            <button 
+                                className="collection-submit-btn"
+                                onClick={handleCreateCollectionAndSave}
+                                disabled={!newCollectionName.trim()}
+                            >
                                 Create & Save
                             </button>
-                        </form>
+                        </div>
 
                         <button type="button" className="collection-cancel-btn" onClick={closeSaveModal}>
                             Cancel
