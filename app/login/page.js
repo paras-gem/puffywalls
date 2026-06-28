@@ -67,6 +67,9 @@ export default function LoginPage() {
         } catch (error) {
             console.error('Google Login Failed: ', error.message);
             toast.error('Google Login Failed: ' + error.message);
+            console.log('API Key:', process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+            console.log('Auth Domain:', process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN);
+            console.log('Project ID:', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);    
         } finally {
             setIsGoogleLoading(false);
         }
