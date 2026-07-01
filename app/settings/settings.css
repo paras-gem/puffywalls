@@ -17,6 +17,18 @@
   transition: background 0.3s ease, color 0.3s ease;
 }
 
+@media (max-width: 768px) {
+  .settings-page {
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-page {
+    padding: 2rem 1rem;
+  }
+}
+
 /* Dark Mode (Default) */
 html.dark .settings-page, .settings-page {
   background: linear-gradient(135deg, #0f1115 0%, #1e1b4b 100%);
@@ -40,6 +52,18 @@ html.light .settings-page {
   display: flex;
   flex-direction: column;
   gap: 2rem; /* Adds spacing between header and content */
+}
+
+@media (max-width: 768px) {
+  .settings-container {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-container {
+    gap: 1rem;
+  }
 }
 
 /* 
@@ -70,6 +94,19 @@ html.light .settings-header {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+@media (max-width: 768px) {
+  .header-title h1 {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title h1 {
+    font-size: 1.4rem;
+  }
+}
+
 html.light .header-title h1 {
   background: linear-gradient(135deg, #1e293b 0%, #4f46e5 100%);
   -webkit-background-clip: text;
@@ -87,6 +124,13 @@ html.light .header-title h1 {
   font-size: 1rem;
   margin: 0;
 }
+
+@media (max-width: 480px) {
+  .header-subtitle {
+    font-size: 0.9rem;
+  }
+}
+
 html.light .header-subtitle {
   color: #475569;
 }
@@ -111,6 +155,19 @@ html.light .header-subtitle {
   padding: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); /* Soft shadow for depth */
   transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .glass-panel {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .glass-panel {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
 }
 html.light .glass-panel {
   background: rgba(255, 255, 255, 0.5);
@@ -144,6 +201,19 @@ html.light .glass-panel:hover {
   margin: 0;
   color: #ffffff;
 }
+
+@media (max-width: 768px) {
+  .card-header h2 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-header h2 {
+    font-size: 1rem;
+  }
+}
+
 html.light .card-header h2 {
   color: #0f172a;
 }
@@ -165,10 +235,22 @@ html.light .card-header h2 {
   gap: 0.5rem;
 }
 
+@media (max-width: 480px) {
+  .form-group {
+    margin-bottom: 1rem;
+  }
+}
+
 .form-group label {
   font-size: 0.875rem;
   font-weight: 500;
   color: #cbd5e1;
+}
+
+@media (max-width: 480px) {
+  .form-group label {
+    font-size: 0.8rem;
+  }
 }
 html.light .form-group label {
   color: #475569;
@@ -201,6 +283,13 @@ html.light .form-group label {
   font-size: 0.95rem;
   outline: none;
   transition: all 0.2s ease;
+}
+
+@media (max-width: 480px) {
+  .input-wrapper input {
+    font-size: 0.9rem;
+    padding: 0.65rem 0.85rem 0.65rem 2.5rem;
+  }
 }
 html.light .input-wrapper input {
   background: rgba(255, 255, 255, 0.6);
@@ -235,6 +324,19 @@ html.light .input-wrapper input::placeholder {
   margin-top: 1rem;
 }
 
+@media (max-width: 768px) {
+  .settings-actions {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+}
+
 .settings-page button {
   cursor: pointer;
   font-family: inherit;
@@ -246,6 +348,23 @@ html.light .input-wrapper input::placeholder {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-height: 40px;
+}
+
+@media (max-width: 768px) {
+  .settings-page button {
+    font-size: 0.9rem;
+    padding: 0.65rem 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-page button {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+  }
 }
 
 /* Cancel Button (Subtle, transparent) */
@@ -298,22 +417,4 @@ html.light .btn-cancel:hover {
   8. RESPONSIVE DESIGN 
   Adjustments for mobile devices. 
 */
-@media (max-width: 600px) {
-  .settings-page {
-    padding: 2rem 1rem; /* Less padding on small screens */
-  }
-  
-  .glass-panel {
-    padding: 1.5rem;
-  }
-  
-  .settings-actions {
-    flex-direction: column-reverse; /* Stack buttons vertically */
-  }
-  
-  .settings-page button {
-    width: 100%; /* Full width buttons on mobile */
-    justify-content: center;
-  }
-}
 

@@ -13,12 +13,26 @@
 .trending-hero {
     position: relative;
     width: 100%;
-    padding: 140px 20px 70px;
+    padding: 100px 20px 50px;
     text-align: center;
     color: #ffffff;
     overflow: hidden;
     margin-top: -88px;
     z-index: 1;
+}
+
+@media (max-width: 768px) {
+    .trending-hero {
+        padding: 70px 15px 40px;
+        margin-top: -60px;
+    }
+}
+
+@media (max-width: 480px) {
+    .trending-hero {
+        padding: 50px 12px 30px;
+        margin-top: -40px;
+    }
 }
 
 .trending-hero::before {
@@ -74,6 +88,14 @@
     animation: pulse 2s ease-in-out infinite;
 }
 
+@media (max-width: 480px) {
+    .trending-badge {
+        font-size: 0.7rem;
+        padding: 5px 12px;
+        margin-bottom: 0.8rem;
+    }
+}
+
 @keyframes pulse {
     0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
     50%       { opacity: 0.85; box-shadow: 0 0 0 8px rgba(255, 107, 107, 0); }
@@ -85,6 +107,20 @@
     line-height: 1.1;
     margin-bottom: 0.8rem;
     text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 768px) {
+    .trending-hero-content h1 {
+        font-size: 2.2rem;
+        margin-bottom: 0.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .trending-hero-content h1 {
+        font-size: 1.6rem;
+        margin-bottom: 0.4rem;
+    }
 }
 
 .gradient-text {
@@ -100,12 +136,38 @@
     margin-bottom: 2.5rem;
 }
 
+@media (max-width: 768px) {
+    .trending-hero-content p {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .trending-hero-content p {
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+    }
+}
+
 /* ── TRENDING TAGS ── */
 .trending-tags-row {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .trending-tags-row {
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .trending-tags-row {
+        gap: 6px;
+    }
 }
 
 .trend-tag {
@@ -122,6 +184,25 @@
     cursor: pointer;
     transition: all 0.25s ease;
     backdrop-filter: blur(8px);
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .trend-tag {
+        padding: 6px 14px;
+        font-size: 0.8rem;
+        min-height: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    .trend-tag {
+        padding: 5px 12px;
+        font-size: 0.75rem;
+        min-height: 24px;
+    }
 }
 
 .trend-tag:hover {
@@ -155,12 +236,35 @@
     font-size: 0.9rem;
     color: inherit;
     opacity: 0.8;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .trending-stats-bar {
+        padding: 12px 3%;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .trending-stats-bar {
+        padding: 10px 2%;
+        font-size: 0.75rem;
+        justify-content: center;
+    }
 }
 
 .stat-item {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+@media (max-width: 480px) {
+    .stat-item {
+        gap: 4px;
+    }
 }
 
 .stat-item strong {
@@ -177,6 +281,20 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .trending-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .trending-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+    }
 }
 
 /* ── CARD ── */
@@ -314,6 +432,21 @@
     cursor: pointer;
     transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     padding: 0;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .trend-btn {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+@media (max-width: 480px) {
+    .trend-btn {
+        width: 32px;
+        height: 32px;
+    }
 }
 
 .trend-btn:hover {
@@ -362,10 +495,14 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-    .trending-hero-content h1 { font-size: 2.2rem; }
-    .trending-content         { padding: 24px 4% 60px; }
-    .trending-grid            { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-    .trending-stats-bar       { padding: 12px 4%; }
+    .trending-content { padding: 24px 3% 50px; }
+}
+
+@media (max-width: 480px) {
+    .trending-content { padding: 16px 2% 40px; }
+    .trending-info h3 { font-size: 0.9rem; }
+    .photographer-tag { font-size: 0.75rem; }
+    .trending-overlay { padding: 12px 10px 10px; }
 }
 
 

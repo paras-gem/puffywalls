@@ -12,12 +12,26 @@
 .explore-hero {
     position: relative;
     width: 100%;
-    padding: 140px 20px 60px; 
+    padding: 100px 20px 50px; 
     text-align: center;
     color: #ffffff; 
     overflow: hidden; 
     margin-top: -88px; 
     z-index: 1; 
+}
+
+@media (max-width: 768px) {
+    .explore-hero {
+        padding: 70px 15px 40px;
+        margin-top: -60px;
+    }
+}
+
+@media (max-width: 480px) {
+    .explore-hero {
+        padding: 50px 12px 30px;
+        margin-top: -40px;
+    }
 }
 
 /* Pseudo element for the animated background image */
@@ -68,10 +82,38 @@
     text-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
+@media (max-width: 768px) {
+    .explore-hero-content h1 {
+        font-size: 2.2rem;
+        margin-bottom: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .explore-hero-content h1 {
+        font-size: 1.6rem;
+        margin-bottom: 6px;
+    }
+}
+
 .explore-hero-content p {
     font-size: 1.2rem;
     margin-bottom: 30px;
     color: #cbd5e1;
+}
+
+@media (max-width: 768px) {
+    .explore-hero-content p {
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .explore-hero-content p {
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
 }
 
 .hero-search-wrapper {
@@ -80,6 +122,13 @@
     animation: slideDown 0.8s ease-out forwards;
     opacity: 0;
     transform: translateY(-20px);
+    padding: 0 10px;
+}
+
+@media (max-width: 480px) {
+    .hero-search-wrapper {
+        max-width: 100%;
+    }
 }
 
 @keyframes slideDown {
@@ -104,6 +153,20 @@
     display: none;
 }
 
+@media (max-width: 768px) {
+    .categories-container {
+        gap: 10px;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .categories-container {
+        gap: 8px;
+        padding: 12px;
+    }
+}
+
 .category-pill {
     padding: 8px 20px;
     border-radius: 30px;
@@ -114,6 +177,25 @@
     white-space: nowrap;
     font-weight: 500;
     transition: all 0.3s ease;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .category-pill {
+        padding: 6px 14px;
+        font-size: 0.9rem;
+        min-height: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-pill {
+        padding: 5px 12px;
+        font-size: 0.8rem;
+        min-height: 28px;
+    }
 }
 
 .category-pill:hover {
@@ -135,10 +217,36 @@
     padding: 0 5% 60px;
 }
 
+@media (max-width: 768px) {
+    .explore-content {
+        padding: 0 3% 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .explore-content {
+        padding: 0 2% 30px;
+    }
+}
+
 .query-title {
     margin-bottom: 30px;
     font-weight: 600;
     font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .query-title {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .query-title {
+        font-size: 1rem;
+        margin-bottom: 15px;
+    }
 }
 
 .query-title span {
@@ -177,6 +285,20 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .wallpaper-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .wallpaper-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+    }
 }
 
 /* Individual Wallpaper Card */
@@ -277,10 +399,25 @@
     color: white;
     cursor: pointer;
     transition: background 0.2s ease;
+    flex-shrink: 0;
 }
 
 .wallpaper-btn:hover {
     background: #ff69b4; 
+}
+
+@media (max-width: 768px) {
+    .wallpaper-btn {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .wallpaper-btn {
+        width: 36px;
+        height: 36px;
+    }
 }
 
 /* =========================================

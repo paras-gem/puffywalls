@@ -15,9 +15,9 @@
 */
 .hero {
     position: relative;
-    /* Increased top padding to bring text down slightly */
+    /* Responsive top padding */
     margin-top: -90px;
-    padding: 10rem 2rem 6rem;
+    padding: 6rem 2rem 4rem;
     text-align: center;
     /* Added background image behind the hero section with a dark overlay to make text pop */
     background: linear-gradient(135deg, rgba(10, 10, 20, 0.5), rgba(30, 20, 40, 0.6)), 
@@ -28,6 +28,22 @@
     border-radius: 0 0 30px 30px;
     margin-bottom: 2rem;
     animation: moveBackground 10s ease-in-out infinite; 
+}
+
+@media (max-width: 768px) {
+    .hero {
+        margin-top: -60px;
+        padding: 4rem 1.5rem 3rem;
+        border-radius: 0 0 20px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        margin-top: -40px;
+        padding: 3rem 1rem 2rem;
+        border-radius: 0 0 15px 15px;
+    }
 }
 
 .hero::before {
@@ -58,6 +74,20 @@
     animation: fadeInDown 0.8s ease;
 }
 
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
 /* Hero Subtitle fading in slightly after the title */
 .hero-subtitle {
     font-size: 1.2rem;
@@ -65,6 +95,20 @@
     opacity: 0.8;
     margin-bottom: 2rem;
     animation: fadeInUp 0.8s ease 0.2s both;
+}
+
+@media (max-width: 768px) {
+    .hero-subtitle {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
 }
 
 /* 
@@ -82,6 +126,24 @@
     padding: 0 1rem;
 }
 
+@media (max-width: 768px) {
+    .categories-container {
+        gap: 0.75rem;
+        margin-top: 2rem;
+        margin-bottom: 1.5rem;
+        padding: 0 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .categories-container {
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        padding: 0 0.5rem;
+    }
+}
+
 /* 
    Category Pill (Button)
    Glassmorphism effect with blur and semi-transparent background
@@ -96,6 +158,25 @@
     white-space: nowrap;
     font-weight: 500;
     transition: all 0.3s ease;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .category-pill {
+        padding: 6px 14px;
+        font-size: 0.9rem;
+        min-height: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-pill {
+        padding: 5px 12px;
+        font-size: 0.8rem;
+        min-height: 28px;
+    }
 }
 
 
@@ -115,6 +196,18 @@
     margin-top: 4rem;
 }
 
+@media (max-width: 768px) {
+    .explore-content {
+        margin-top: 2.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .explore-content {
+        margin-top: 1.5rem;
+    }
+}
+
 /* 
    Wallpapers Grid 
    Standard responsive CSS grid layout
@@ -126,6 +219,22 @@
     padding: 0 2rem;
     max-width: 1400px;
     margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .wallpapers-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .wallpapers-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 0.75rem;
+        padding: 0 0.75rem;
+    }
 }
 
 /* 
@@ -216,11 +325,26 @@
     color: white;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.2s ease;
+    flex-shrink: 0;
 }
 
 .wallpaper-btn:hover {
     background: #ff6b6b; /* Accent color on hover */
     transform: scale(1.1); /* Slight pop effect */
+}
+
+@media (max-width: 768px) {
+    .wallpaper-btn {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .wallpaper-btn {
+        width: 36px;
+        height: 36px;
+    }
 }
 
 /* Keyframe animations for entrance effects */

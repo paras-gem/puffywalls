@@ -277,7 +277,7 @@ export default function Collections() {
 
         if (user && collectionMeta[folderKey]) {
             try {
-                await deleteCollection(collectionMeta[folderKey]._id);
+                await deleteCollection(collectionMeta[folderKey]._id, user.uid);
                 await reloadCollections();
                 setShowManageModal(false);
                 if (selectedFolder === folderKey) setSelectedFolder(null);

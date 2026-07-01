@@ -71,22 +71,39 @@ export async function POST(request) {
 }
 
 /**
- * @route   DELETE /api/collections?collectionId=...
+ * @route   DELETE /api/collections?collectionId=...&ownerId=...
  * @desc    Permanently delete a specific collection using its query string ID
- * @access  Public / Protected
+ * @access  Protected - User must own the collection
  */
 export async function DELETE(request) {
   try {
     // Parse the query parameters from the request URL
     const url = new URL(request.url);
     const collectionId = url.searchParams.get('collectionId');
+    const ownerId = url.searchParams.get('ownerId');
 
     // Validation: collectionId query parameter must be present
     if (!collectionId) {
       return NextResponse.json({ error: 'collectionId is required' }, { status: 400 });
     }
 
+    // Validation: ownerId query parameter must be present for ownership verification
+    if (!ownerId) {
+      return NextResponse.json({ error: 'ownerId is required for deletion' }, { status: 400 });
+    }
+
     await dbConnect();
+
+    // Fetch the collection first to verify ownership
+    const collection = await Collection.findById(collectionId).lean();
+    if (!collection) {
+      return NextResponse.json({ error: 'Collection not found' }, { status: 404 });
+    }
+
+    // Verify ownership before allowing deletion
+    if (collection.ownerId !== ownerId) {
+      return NextResponse.json({ error: 'Unauthorized: You do not own this collection' }, { status: 403 });
+    }
 
     // Attempt to locate and remove the collection document
     const deletedCollection = await Collection.findByIdAndDelete(collectionId);
